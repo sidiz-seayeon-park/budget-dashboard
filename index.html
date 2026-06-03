@@ -3,153 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>최적화 가계부 대시보드</title>
+    <title>재원 & 세연 가계부</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f5f8; }
+        body { font-family: 'Inter', 'Pretendard', sans-serif; background-color: #f4f5f8; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        .card-shadow { box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .card-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .hidden-view { display: none !important; }
+        
+        /* 탭 버튼 스타일링 */
+        .filter-tab {
+            padding: 6px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600; cursor: pointer;
+            background-color: #f1f5f9; color: #64748b; transition: all 0.2s ease; border: 1px solid transparent;
+        }
+        .filter-tab:hover { background-color: #e2e8f0; color: #334155; }
+        .filter-tab.active { background-color: #ff6f59; color: white; box-shadow: 0 2px 4px rgba(255,111,89,0.3); }
+        
+        /* 히트맵 셀 애니메이션 */
+        .heatmap-cell { transition: opacity 0.3s ease; }
+        .heatmap-cell:hover { opacity: 0.8; }
     </style>
 </head>
 <body class="text-slate-700 flex h-screen overflow-hidden">
 
     <!-- 사이드바 -->
-    <aside class="w-64 bg-[#222736] flex-col hidden lg:flex h-full z-10 transition-all duration-300">
+    <aside class="w-64 bg-[#222736] flex-col hidden lg:flex h-full z-10">
         <div class="h-16 flex items-center px-6 border-b border-white/5">
-            <div class="flex items-center gap-2 text-white font-bold text-xl tracking-wide">
-                <div class="w-6 h-6 bg-[#ff6f59] rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            <div class="flex items-center gap-3 text-white font-bold text-lg tracking-wide">
+                <div class="w-8 h-8 bg-gradient-to-br from-[#ff6f59] to-[#ff4b33] rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 </div>
-                BudgetOpt
+                재원 & 세연 가계부
             </div>
         </div>
         
-        <div class="flex-1 overflow-y-auto py-4 px-3">
-            <p class="px-3 text-xs font-semibold text-[#8c98a8] mb-2 mt-2">MENU</p>
+        <div class="flex-1 overflow-y-auto py-6 px-4">
+            <p class="px-2 text-[11px] font-bold text-[#8c98a8] tracking-wider mb-3">MAIN MENU</p>
             <nav class="space-y-2">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center px-3 py-2.5 rounded-lg bg-white/10 text-white font-medium transition">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-4 h-4 text-[#ff6f59]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        대시보드 (분석)
-                    </div>
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition">
+                    <svg class="w-5 h-5 mr-3 text-[#ff6f59]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    대시보드 (분석)
                 </button>
-                <button onclick="switchTab('expenses')" id="btn-expenses" class="w-full flex items-center px-3 py-2.5 rounded-lg text-[#8c98a8] hover:text-white hover:bg-white/5 transition">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                        지출 (상세 내역)
-                    </div>
+                <button onclick="switchTab('expenses')" id="btn-expenses" class="w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    지출 (상세 내역)
                 </button>
             </nav>
         </div>
     </aside>
 
     <!-- 메인 콘텐츠 -->
-    <main class="flex-1 overflow-y-auto">
-        <header class="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 sticky top-0 z-20">
-            <h2 id="header-title" class="text-lg font-bold text-slate-800 tracking-tight">가계 지출 최적화 분석</h2>
-            <div class="flex items-center gap-3">
-                <select id="yearFilter" class="bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-1.5 outline-none focus:border-[#ff6f59] text-slate-600">
-                    <option value="all">연도 전체</option>
-                </select>
-                <select id="monthFilter" class="bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-1.5 outline-none focus:border-[#ff6f59] text-slate-600">
-                    <option value="all">월 전체</option>
-                </select>
-            </div>
+    <main class="flex-1 overflow-y-auto bg-[#f8fafc]">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-20">
+            <h2 id="header-title" class="text-xl font-extrabold text-slate-800 tracking-tight">대시보드 종합 분석</h2>
         </header>
 
-        <div class="p-6 max-w-7xl mx-auto space-y-6">
+        <div class="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8">
 
+            <!-- ========================================== -->
             <!-- 뷰 1: 대시보드 (최적화 분석) -->
-            <div id="view-dashboard">
-                <!-- KPI 요약 -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100">
-                        <p class="text-sm font-medium text-slate-400 mb-2">해당 월 총 월급 (목표 설정)</p>
-                        <h3 id="kpiIncome" class="text-2xl font-bold text-slate-800">0원</h3>
-                        <p id="incomeNotice" class="text-xs text-rose-400 mt-2 hidden">목표설정 탭 연동 실패</p>
+            <!-- ========================================== -->
+            <div id="view-dashboard" class="space-y-8">
+                
+                <!-- 탭 필터 영역 (드롭다운 대체) -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">기준 연도</span>
+                        <div id="dashYearTabs" class="flex flex-wrap gap-2"></div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100">
-                        <p class="text-sm font-medium text-slate-400 mb-2">실제 총 지출</p>
-                        <h3 id="kpiExpense" class="text-2xl font-bold text-[#ff5b5b]">0원</h3>
-                        <p id="sharedExpenseRatio" class="text-xs text-slate-500 mt-2">공통 지출 비중: 계산 중...</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">기준 월</span>
+                        <div id="dashMonthTabs" class="flex flex-wrap gap-2"></div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100 bg-gradient-to-br from-[#f4fcf8] to-white border-l-4 border-l-[#10c469]">
-                        <p class="text-sm font-medium text-slate-500 mb-2">투자 및 저축 가용액 (최적화 목표)</p>
-                        <h3 id="kpiRemaining" class="text-2xl font-bold text-[#10c469]">0원</h3>
-                        <p class="text-xs text-[#10c469] mt-2 font-medium">잉여 자금은 미래를 위해 투자하세요!</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">지출자</span>
+                        <div id="dashSpenderTabs" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
 
-                <!-- 분석 차트 3종 -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- 차트 1: 사용자(공통/개인) 비중 -->
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100">
-                        <div class="mb-4">
-                            <h3 class="text-base font-bold text-slate-800">실사용자 기준 지출 비중</h3>
-                            <p class="text-xs text-slate-400 mt-1">공통 생활비와 개인 용돈의 비율을 확인하세요.</p>
+                <!-- KPI 요약 4종 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#3b82f6]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 목표 수입</p>
+                        <h3 id="kpiIncome" class="text-2xl font-bold text-slate-800">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#ef4444]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 실제 지출</p>
+                        <h3 id="kpiExpense" class="text-2xl font-bold text-slate-800">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#10b981]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 수입 - 지출 (가용액)</p>
+                        <h3 id="kpiNet" class="text-2xl font-bold text-[#10b981]">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden bg-slate-50">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#8b5cf6]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">선택 월까지의 누적 잔액</p>
+                        <h3 id="kpiCumulative" class="text-2xl font-bold text-[#8b5cf6]">0원</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">올해 1월부터 선택한 달까지의 합산</p>
+                    </div>
+                </div>
+
+                <!-- 비교 인사이트 (최다/최소 소비 항목) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-bold text-rose-500 mb-1 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                                가장 많이 소비한 항목
+                            </p>
+                            <h4 id="insightMaxCat" class="text-xl font-extrabold text-slate-800">-</h4>
+                            <p id="insightMaxDesc" class="text-sm text-slate-500 mt-2">전월 비교 데이터 없음</p>
                         </div>
-                        <div class="h-56 relative"><canvas id="usageChart"></canvas></div>
+                        <div class="text-right">
+                            <p id="insightMaxAmt" class="text-2xl font-bold text-slate-800">0원</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-bold text-emerald-500 mb-1 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                가장 적게 소비한 항목
+                            </p>
+                            <h4 id="insightMinCat" class="text-xl font-extrabold text-slate-800">-</h4>
+                            <p id="insightMinDesc" class="text-sm text-slate-500 mt-2">전월 비교 데이터 없음</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="insightMinAmt" class="text-2xl font-bold text-slate-800">0원</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 차트 영역 -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- 바 그래프 + 꺾은선 (월별 수입/지출 및 변동률) -->
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
+                        <h3 class="text-base font-bold text-slate-800 mb-6">월별 수입/지출 및 지출 변동률</h3>
+                        <div class="h-72 w-full"><canvas id="mixedChart"></canvas></div>
                     </div>
 
-                    <!-- 차트 2: 카테고리 비중 -->
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100">
-                        <div class="mb-4">
-                            <h3 class="text-base font-bold text-slate-800">어디에 소비되었나 (카테고리)</h3>
-                            <p class="text-xs text-slate-400 mt-1">줄일 수 있는 변동 지출을 찾아보세요.</p>
+                    <!-- 지출 비중 히트맵 (Heatmap) -->
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
+                        <h3 class="text-base font-bold text-slate-800 mb-2">카테고리별 지출 비중 (히트맵)</h3>
+                        <p class="text-xs text-slate-400 mb-4">색상이 진할수록 지출 금액이 큰 항목입니다.</p>
+                        <div class="flex-1 overflow-x-auto">
+                            <div id="heatmapContainer" class="min-w-[500px]">
+                                <!-- JS 동적 생성 -->
+                            </div>
                         </div>
-                        <div class="h-56 relative"><canvas id="categoryChart"></canvas></div>
                     </div>
+                </div>
 
-                    <!-- 차트 3: 월별 추세 -->
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-slate-100 lg:col-span-1">
-                        <div class="mb-4">
-                            <h3 class="text-base font-bold text-slate-800">월별 지출 흐름</h3>
-                            <p class="text-xs text-slate-400 mt-1">지출이 점차 최적화되고 있는지 확인합니다.</p>
-                        </div>
-                        <div class="h-56"><canvas id="trendChart"></canvas></div>
+                <!-- 표: 월별 수입/지출 현황 -->
+                <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h3 class="text-base font-bold text-slate-800">월별 수입/지출 상세 현황 (표)</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="py-3 px-6 font-semibold">연/월</th>
+                                    <th class="py-3 px-6 font-semibold text-right text-blue-600">수입 (목표)</th>
+                                    <th class="py-3 px-6 font-semibold text-right text-red-500">지출</th>
+                                    <th class="py-3 px-6 font-semibold text-right text-emerald-600">수입 - 지출</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyTableBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- JS 동적 렌더링 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
+            <!-- ========================================== -->
             <!-- 뷰 2: 지출 (상세 내역 테이블) -->
-            <div id="view-expenses" class="hidden-view">
-                <div class="bg-white rounded-xl card-shadow border border-slate-100 pt-6 pb-4 px-6 flex flex-col h-[calc(100vh-140px)]">
-                    
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 border-b border-slate-100 pb-4">
-                        <div>
-                            <h3 class="text-[20px] font-bold text-slate-800">지출 최적화를 위한 상세 내역</h3>
-                            <p class="text-sm text-slate-400 mt-1" id="tableRowCount">데이터 로딩 중...</p>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <select id="filterCategory" class="bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2 outline-none">
-                                <option value="all">모든 구분</option>
-                            </select>
-                            <!-- 결제자 필터 -->
-                            <select id="filterPayer" class="bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2 outline-none">
-                                <option value="all">모든 결제자</option>
-                            </select>
-                            <!-- 실사용자 필터 -->
-                            <select id="filterUser" class="bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2 outline-none">
-                                <option value="all">모든 실사용자</option>
-                            </select>
-                        </div>
+            <!-- ========================================== -->
+            <div id="view-expenses" class="hidden-view space-y-6">
+                
+                <!-- 지출 탭 전용 탭 필터 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">구분</span>
+                        <div id="expCategoryTabs" class="flex flex-wrap gap-2"></div>
                     </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">지출자</span>
+                        <div id="expPayerTabs" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-bold text-slate-700 w-16">실사용자</span>
+                        <div id="expUserTabs" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
 
+                <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-280px)]">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white z-10 sticky top-0">
+                        <h3 class="text-lg font-bold text-slate-800">상세 내역 리스트</h3>
+                        <span id="tableRowCount" class="text-sm font-semibold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">0건</span>
+                    </div>
                     <div class="overflow-y-auto flex-1">
                         <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="sticky top-0 bg-white shadow-sm z-10">
-                                <tr class="text-slate-500 border-b border-slate-200">
-                                    <th class="py-3 px-4 font-medium">날짜</th>
-                                    <th class="py-3 px-4 font-medium">구분</th>
-                                    <th class="py-3 px-4 font-medium">항목 내용</th>
-                                    <th class="py-3 px-4 font-medium text-center">결제자(지출자)</th>
-                                    <th class="py-3 px-4 font-medium text-center">실사용자</th>
-                                    <th class="py-3 px-4 font-medium text-right">금액</th>
+                            <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
+                                <tr class="text-slate-500">
+                                    <th class="py-3 px-6 font-semibold">날짜</th>
+                                    <th class="py-3 px-6 font-semibold">구분</th>
+                                    <th class="py-3 px-6 font-semibold">항목 내용</th>
+                                    <th class="py-3 px-6 font-semibold text-center">지출자</th>
+                                    <th class="py-3 px-6 font-semibold text-center">실사용자</th>
+                                    <th class="py-3 px-6 font-semibold text-right">금액</th>
                                 </tr>
                             </thead>
                             <tbody id="expenseTableBody" class="text-slate-600 divide-y divide-slate-100">
@@ -164,90 +233,89 @@
     </main>
 
     <script>
-        // 새로 전달해주신 시트별 고유 링크!
+        // 🚨 구글 시트 게시 링크 (전달해주신 2개의 링크 적용 완료) 🚨
         const expenseCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfgT2MH4Hi34iUa5WYX-W1MiE2hjQsl2TKF2e2rVRxP4HitJYvBKkONHkdE7786Du8CmhyfPs4lbxV/pub?gid=0&single=true&output=csv";
         const goalCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfgT2MH4Hi34iUa5WYX-W1MiE2hjQsl2TKF2e2rVRxP4HitJYvBKkONHkdE7786Du8CmhyfPs4lbxV/pub?gid=1286578052&single=true&output=csv";
 
         let expenseData = [];
         let goalData = {}; 
-        let usageChart, catChart, trendChart;
+        let mixedChart;
 
-        // 탭 전환
+        // 글로벌 상태 (선택된 탭 값들)
+        let state = {
+            dashYear: 'all', dashMonth: 'all', dashSpender: 'all',
+            expCategory: 'all', expPayer: 'all', expUser: 'all'
+        };
+
+        // UI 탭 전환
         function switchTab(tabName) {
-            document.getElementById('btn-dashboard').className = "w-full flex items-center px-3 py-2.5 rounded-lg text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
-            document.getElementById('btn-expenses').className = "w-full flex items-center px-3 py-2.5 rounded-lg text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
             document.getElementById('view-dashboard').classList.add('hidden-view');
             document.getElementById('view-expenses').classList.add('hidden-view');
 
             if(tabName === 'dashboard') {
-                document.getElementById('btn-dashboard').className = "w-full flex items-center px-3 py-2.5 rounded-lg bg-white/10 text-white font-medium transition";
+                document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
                 document.getElementById('view-dashboard').classList.remove('hidden-view');
-                document.getElementById('header-title').innerText = "가계 지출 최적화 분석";
+                document.getElementById('header-title').innerText = "대시보드 종합 분석";
             } else {
-                document.getElementById('btn-expenses').className = "w-full flex items-center px-3 py-2.5 rounded-lg bg-white/10 text-white font-medium transition";
+                document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
                 document.getElementById('view-expenses').classList.remove('hidden-view');
-                document.getElementById('header-title').innerText = "지출 최적화를 위한 상세 내역";
+                document.getElementById('header-title').innerText = "지출 상세 조회";
             }
         }
 
-        // 지출 CSV 파서
+        // CSV 파싱
         function parseExpenseCSV(text) {
             const lines = text.split('\n').filter(l => l.trim());
             if (!lines.length) return [];
-            const rawHeaders = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
+            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
             
-            const headerMap = {
-                date: rawHeaders.find(h => h.includes('날짜')) || rawHeaders[0],
-                category: rawHeaders.find(h => h.includes('구분')) || rawHeaders[1],
-                item: rawHeaders.find(h => h.includes('항목') || h.includes('내용')) || rawHeaders[2],
-                amount: rawHeaders.find(h => h.includes('금액')) || rawHeaders[3],
-                payer: rawHeaders.find(h => h.includes('지출자') || h.includes('결제자') || h.includes('카드')) || '',
-                user: rawHeaders.find(h => h.includes('사용자') || h.includes('실사용') || h.includes('공통')) || ''
+            const map = {
+                date: headers.find(h => h.includes('날짜')) || headers[0],
+                category: headers.find(h => h.includes('구분')) || headers[1],
+                item: headers.find(h => h.includes('항목') || h.includes('내용')) || headers[2],
+                amount: headers.find(h => h.includes('금액')) || headers[3],
+                payer: headers.find(h => h.includes('지출자') || h.includes('결제자') || h.includes('카드')) || '',
+                user: headers.find(h => h.includes('사용자') || h.includes('실사용') || h.includes('공통')) || ''
             };
 
             return lines.slice(1).map(line => {
-                const values = [];
-                let inQuotes = false, currentVal = '';
-                for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) { values.push(currentVal.replace(/["']/g, '').trim()); currentVal = ''; }
-                    else currentVal += char;
+                const vals = [];
+                let inQ = false, cur = '';
+                for (let i=0; i<line.length; i++) {
+                    if (line[i] === '"') inQ = !inQ;
+                    else if (line[i] === ',' && !inQ) { vals.push(cur.replace(/["']/g, '').trim()); cur = ''; }
+                    else cur += line[i];
                 }
-                values.push(currentVal.replace(/["']/g, '').trim());
+                vals.push(cur.replace(/["']/g, '').trim());
 
                 let row = {};
-                let rawDate = values[rawHeaders.indexOf(headerMap.date)] || '';
-                row['날짜'] = rawDate.replace(/[\.\/]/g, '-').replace(/\s+/g, '').replace(/-+$/, '');
-                row['구분'] = values[rawHeaders.indexOf(headerMap.category)] || '-';
-                row['항목'] = values[rawHeaders.indexOf(headerMap.item)] || '-';
-                row['결제자'] = headerMap.payer ? (values[rawHeaders.indexOf(headerMap.payer)] || '-') : '-';
-                row['사용자'] = headerMap.user ? (values[rawHeaders.indexOf(headerMap.user)] || '-') : '공통'; 
-                
-                let rawAmt = values[rawHeaders.indexOf(headerMap.amount)] || '0';
-                row['금액'] = parseInt(rawAmt.replace(/[^0-9-]/g, '')) || 0;
+                let rDate = vals[headers.indexOf(map.date)] || '';
+                row['날짜'] = rDate.replace(/[\.\/]/g, '-').replace(/\s+/g, '').replace(/-+$/, '');
+                row['구분'] = vals[headers.indexOf(map.category)] || '-';
+                row['항목'] = vals[headers.indexOf(map.item)] || '-';
+                row['지출자'] = map.payer ? (vals[headers.indexOf(map.payer)] || '-') : '-';
+                row['사용자'] = map.user ? (vals[headers.indexOf(map.user)] || '-') : '공통'; 
+                row['금액'] = parseInt((vals[headers.indexOf(map.amount)]||'0').replace(/[^0-9-]/g, '')) || 0;
                 return row;
             });
         }
 
-        // 목표 수입 CSV 파서
         function parseGoalCSV(text) {
             const lines = text.split('\n').filter(l => l.trim());
             if (lines.length < 2) return {};
-            const rawHeaders = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
-            
-            const monthIdx = rawHeaders.findIndex(h => h.includes('월') || h.includes('날짜') || h.includes('기간'));
-            const incomeIdx = rawHeaders.findIndex(h => h.includes('수입') || h.includes('월급') || h.includes('목표'));
+            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
+            const mIdx = headers.findIndex(h => h.includes('월') || h.includes('날짜') || h.includes('기간'));
+            const iIdx = headers.findIndex(h => h.includes('수입') || h.includes('월급') || h.includes('목표'));
             
             let goals = {};
             lines.slice(1).forEach(line => {
-                const values = line.split(',').map(v => v.replace(/["']/g, '').trim());
-                if(monthIdx !== -1 && incomeIdx !== -1) {
-                    let m = values[monthIdx].replace(/[\.\/]/g, '-').replace(/\s+/g, ''); 
-                    let inc = parseInt(values[incomeIdx].replace(/[^0-9]/g, '')) || 0;
-                    if (m && inc) {
-                        goals[m] = inc;
-                    }
+                const vals = line.split(',').map(v => v.replace(/["']/g, '').trim());
+                if(mIdx !== -1 && iIdx !== -1) {
+                    let m = vals[mIdx].replace(/[\.\/]/g, '-').replace(/\s+/g, ''); 
+                    let inc = parseInt(vals[iIdx].replace(/[^0-9]/g, '')) || 0;
+                    if (m && inc) goals[m] = inc;
                 }
             });
             return goals;
@@ -255,160 +323,288 @@
 
         async function fetchData() {
             try {
-                // 1. 지출 내역 가져오기
-                const expRes = await fetch(expenseCsvUrl);
+                const [expRes, goalRes] = await Promise.all([fetch(expenseCsvUrl), fetch(goalCsvUrl)]);
                 expenseData = parseExpenseCSV(await expRes.text());
+                goalData = parseGoalCSV(await goalRes.text());
+                
+                // 최신 연/월을 기본값으로 세팅
+                let maxYear = 0, maxMonth = 0;
+                expenseData.forEach(d => {
+                    const p = d['날짜'].split('-');
+                    if(p[0] && parseInt(p[0]) > maxYear) maxYear = parseInt(p[0]);
+                });
+                expenseData.forEach(d => {
+                    const p = d['날짜'].split('-');
+                    if(p[0] == maxYear && p[1] && parseInt(p[1]) > maxMonth) maxMonth = parseInt(p[1]);
+                });
+                
+                if(maxYear) state.dashYear = maxYear.toString();
+                if(maxMonth) state.dashMonth = maxMonth.toString().padStart(2, '0');
 
-                // 2. 목표 내역 가져오기
-                if(goalCsvUrl) {
-                    const goalRes = await fetch(goalCsvUrl);
-                    goalData = parseGoalCSV(await goalRes.text());
-                    document.getElementById('incomeNotice').classList.add('hidden');
-                } else {
-                    document.getElementById('incomeNotice').classList.remove('hidden');
-                }
-
-                setupGlobalFilters();
+                renderTabButtons();
                 updateAllViews();
             } catch (err) {
-                console.error("데이터 로드 에러:", err);
+                console.error("Data load error:", err);
             }
         }
 
-        function setupGlobalFilters() {
-            const yFilter = document.getElementById('yearFilter');
-            const mFilter = document.getElementById('monthFilter');
-            const catF = document.getElementById('filterCategory');
-            const payerF = document.getElementById('filterPayer');
-            const userF = document.getElementById('filterUser');
+        // 탭(버튼) 필터 생성 렌더러
+        function createTabs(containerId, options, currentStateKey, isAllAllowed=true) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if(isAllAllowed) {
+                const btnAll = document.createElement('button');
+                btnAll.className = `filter-tab ${state[currentStateKey] === 'all' ? 'active' : ''}`;
+                btnAll.innerText = '전체';
+                btnAll.onclick = () => { state[currentStateKey] = 'all'; renderTabButtons(); updateAllViews(); };
+                container.appendChild(btnAll);
+            }
 
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `filter-tab ${state[currentStateKey] === opt.value ? 'active' : ''}`;
+                btn.innerText = opt.label;
+                btn.onclick = () => { state[currentStateKey] = opt.value; renderTabButtons(); updateAllViews(); };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderTabButtons() {
             const years = new Set(), months = new Set(), cats = new Set(), payers = new Set(), users = new Set();
             expenseData.forEach(d => {
                 if (d['날짜']) { const p = d['날짜'].split('-'); if(p[0]) years.add(p[0]); if(p[1]) months.add(p[1]); }
-                cats.add(d['구분']); payers.add(d['결제자']); users.add(d['사용자']);
+                cats.add(d['구분']); payers.add(d['지출자']); users.add(d['사용자']);
             });
 
-            yFilter.innerHTML = '<option value="all">연도 전체</option>' + Array.from(years).sort().map(y => `<option value="${y}">${y}년</option>`).join('');
-            mFilter.innerHTML = '<option value="all">월 전체</option>' + Array.from(months).sort().map(m => `<option value="${m}">${m}월</option>`).join('');
+            // 대시보드 필터
+            createTabs('dashYearTabs', Array.from(years).sort().map(y=>({value:y, label:`${y}년`})), 'dashYear', false);
+            createTabs('dashMonthTabs', Array.from(months).sort().map(m=>({value:m, label:`${m}월`})), 'dashMonth', false);
+            createTabs('dashSpenderTabs', Array.from(payers).filter(p=>p!=='-').map(p=>({value:p, label:p})), 'dashSpender');
             
-            catF.innerHTML = '<option value="all">모든 구분</option>' + Array.from(cats).filter(c=>c!=='-').map(c => `<option value="${c}">${c}</option>`).join('');
-            payerF.innerHTML = '<option value="all">모든 결제자</option>' + Array.from(payers).filter(p=>p!=='-').map(p => `<option value="${p}">${p}</option>`).join('');
-            userF.innerHTML = '<option value="all">모든 실사용자</option>' + Array.from(users).filter(u=>u!=='-').map(u => `<option value="${u}">${u}</option>`).join('');
-
-            yFilter.onchange = updateAllViews;
-            mFilter.onchange = updateAllViews;
-            catF.onchange = renderTable;
-            payerF.onchange = renderTable;
-            userF.onchange = renderTable;
-        }
-
-        function getGlobalFilteredData() {
-            const ySel = document.getElementById('yearFilter').value;
-            const mSel = document.getElementById('monthFilter').value;
-            return expenseData.filter(d => {
-                const p = (d['날짜']||'').split('-');
-                return (ySel === 'all' || p[0] === ySel) && (mSel === 'all' || p[1] === mSel);
-            });
+            // 지출 내역 필터
+            createTabs('expCategoryTabs', Array.from(cats).filter(c=>c!=='-').map(c=>({value:c, label:c})), 'expCategory');
+            createTabs('expPayerTabs', Array.from(payers).filter(p=>p!=='-').map(p=>({value:p, label:p})), 'expPayer');
+            createTabs('expUserTabs', Array.from(users).filter(u=>u!=='-').map(u=>({value:u, label:u})), 'expUser');
         }
 
         function updateAllViews() {
-            updateDashboardView();
-            renderTable();
+            updateDashboard();
+            updateExpenseTable();
         }
 
-        function updateDashboardView() {
-            const filtered = getGlobalFilteredData();
-            const ySel = document.getElementById('yearFilter').value;
-            const mSel = document.getElementById('monthFilter').value;
+        // =====================================
+        // 대시보드 렌더링 로직
+        // =====================================
+        function updateDashboard() {
+            const y = state.dashYear;
+            const m = state.dashMonth;
+            const s = state.dashSpender;
+            const curMonthKey = `${y}-${m}`;
             
-            // 선택된 연-월로 목표 수입 매칭 
-            let currentMonthKey = (ySel !== 'all' && mSel !== 'all') ? `${ySel}-${mSel}` : '';
-            let targetIncome = goalData[currentMonthKey] || 0; 
-            
-            let totalExp = 0, catMap = {}, userMap = {}, trendMap = {}, sharedExp = 0;
-            filtered.forEach(d => {
-                totalExp += d['금액'];
-                catMap[d['구분']] = (catMap[d['구분']] || 0) + d['금액'];
-                userMap[d['사용자']] = (userMap[d['사용자']] || 0) + d['금액'];
+            // 1. KPI 데이터 계산
+            let monthlyInc = goalData[curMonthKey] || 0;
+            let monthlyExp = 0;
+            let cumulativeInc = 0;
+            let cumulativeExp = 0;
+
+            expenseData.forEach(d => {
+                const p = d['날짜'].split('-');
+                if(!p[0] || !p[1]) return;
+                const dKey = `${p[0]}-${p[1]}`;
                 
-                // 공통 지출 비중 분석을 위한 로직
-                if(d['사용자'].includes('공통') || d['사용자'].includes('가족') || d['사용자'].includes('마트')) {
-                    sharedExp += d['금액'];
+                // 월 지출 (지출자 필터 적용)
+                if (p[0] === y && p[1] === m && (s === 'all' || d['지출자'] === s)) {
+                    monthlyExp += d['금액'];
                 }
-
-                const m = (d['날짜']||'').split('-')[1];
-                if(m) trendMap[m+'월'] = (trendMap[m+'월'] || 0) + d['금액'];
+                
+                // 누적 계산 (선택 연도 1월 ~ 선택 월까지)
+                if (p[0] === y && p[1] <= m) {
+                    cumulativeExp += d['금액'];
+                }
             });
 
-            const remaining = targetIncome - totalExp;
-            const sharedRatio = totalExp > 0 ? ((sharedExp / totalExp) * 100).toFixed(1) : 0;
-
-            // KPI 적용
-            document.getElementById('kpiIncome').innerText = targetIncome === 0 ? '목표 정보 없음' : targetIncome.toLocaleString() + '원';
-            document.getElementById('kpiExpense').innerText = totalExp.toLocaleString() + '원';
-            document.getElementById('sharedExpenseRatio').innerText = `공통 생활비 비중: ${sharedRatio}%`;
-            document.getElementById('kpiRemaining').innerText = targetIncome === 0 ? '-' : remaining.toLocaleString() + '원';
-
-            // 차트 렌더링
-            const colors = ['#10c469', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#ff6f59', '#cbd5e1'];
-
-            // 1. 실사용자 파이 차트
-            if(usageChart) usageChart.destroy();
-            usageChart = new Chart(document.getElementById('usageChart'), {
-                type: 'doughnut',
-                data: { labels: Object.keys(userMap), datasets: [{ data: Object.values(userMap), backgroundColor: colors }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right' } } }
+            // 누적 수입 계산 (해당 연도 1월~선택 월까지)
+            Object.keys(goalData).forEach(k => {
+                const kp = k.split('-');
+                if(kp[0] === y && kp[1] <= m) cumulativeInc += goalData[k];
             });
 
-            // 2. 카테고리 차트
-            if(catChart) catChart.destroy();
-            catChart = new Chart(document.getElementById('categoryChart'), {
-                type: 'pie',
-                data: { labels: Object.keys(catMap), datasets: [{ data: Object.values(catMap), backgroundColor: colors.slice().reverse() }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            document.getElementById('kpiIncome').innerText = monthlyInc.toLocaleString() + '원';
+            document.getElementById('kpiExpense').innerText = monthlyExp.toLocaleString() + '원';
+            document.getElementById('kpiNet').innerText = (monthlyInc - monthlyExp).toLocaleString() + '원';
+            document.getElementById('kpiCumulative').innerText = (cumulativeInc - cumulativeExp).toLocaleString() + '원';
+
+            // 2. 인사이트 (전월 대비 최다/최소)
+            let prevM = parseInt(m) - 1;
+            let prevY = parseInt(y);
+            if (prevM === 0) { prevM = 12; prevY -= 1; }
+            const prevMonthKey = `${prevY}-${prevM.toString().padStart(2, '0')}`;
+
+            let curCatMap = {}, prevCatMap = {};
+            expenseData.forEach(d => {
+                const p = d['날짜'].split('-');
+                const dKey = `${p[0]}-${p[1]}`;
+                if((s === 'all' || d['지출자'] === s)) {
+                    if (dKey === curMonthKey) curCatMap[d['구분']] = (curCatMap[d['구분']] || 0) + d['금액'];
+                    if (dKey === prevMonthKey) prevCatMap[d['구분']] = (prevCatMap[d['구분']] || 0) + d['금액'];
+                }
             });
 
-            // 3. 트렌드 차트
-            if(trendChart) trendChart.destroy();
-            trendChart = new Chart(document.getElementById('trendChart'), {
+            let maxCat = '-', maxAmt = 0, minCat = '-', minAmt = Infinity;
+            Object.keys(curCatMap).forEach(c => {
+                if(curCatMap[c] > maxAmt) { maxAmt = curCatMap[c]; maxCat = c; }
+                if(curCatMap[c] < minAmt) { minAmt = curCatMap[c]; minCat = c; }
+            });
+
+            document.getElementById('insightMaxCat').innerText = maxCat;
+            document.getElementById('insightMaxAmt').innerText = maxAmt.toLocaleString() + '원';
+            if(maxCat !== '-' && prevCatMap[maxCat] !== undefined) {
+                let diff = maxAmt - prevCatMap[maxCat];
+                let sign = diff > 0 ? '증가 🔺' : '감소 🔽';
+                document.getElementById('insightMaxDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${sign}</b>`;
+            } else {
+                document.getElementById('insightMaxDesc').innerText = "전월 비교 데이터 없음";
+            }
+
+            document.getElementById('insightMinCat').innerText = minAmt === Infinity ? '-' : minCat;
+            document.getElementById('insightMinAmt').innerText = minAmt === Infinity ? '0원' : minAmt.toLocaleString() + '원';
+            if(minAmt !== Infinity && minCat !== '-' && prevCatMap[minCat] !== undefined) {
+                let diff = minAmt - prevCatMap[minCat];
+                let sign = diff > 0 ? '증가 🔺' : '감소 🔽';
+                document.getElementById('insightMinDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${sign}</b>`;
+            } else {
+                document.getElementById('insightMinDesc').innerText = "전월 비교 데이터 없음";
+            }
+
+            // 3. 월별 차트 & 테이블 (해당 연도 전체 데이터)
+            let yearlyInc = {}, yearlyExp = {};
+            for(let i=1; i<=12; i++) {
+                let mk = `${y}-${i.toString().padStart(2, '0')}`;
+                yearlyInc[mk] = goalData[mk] || 0;
+                yearlyExp[mk] = 0;
+            }
+            expenseData.forEach(d => {
+                const p = d['날짜'].split('-');
+                if(p[0] === y && (s === 'all' || d['지출자'] === s)) {
+                    let mk = `${p[0]}-${p[1]}`;
+                    yearlyExp[mk] = (yearlyExp[mk] || 0) + d['금액'];
+                }
+            });
+
+            // 표 그리기
+            const tb = document.getElementById('monthlyTableBody');
+            tb.innerHTML = '';
+            let chartLabels = [], chartInc = [], chartExp = [], chartRate = [];
+            
+            Object.keys(yearlyInc).sort().forEach((mk, idx, arr) => {
+                let inc = yearlyInc[mk], exp = yearlyExp[mk], net = inc - exp;
+                if(inc > 0 || exp > 0) {
+                    chartLabels.push(mk.split('-')[1]+'월');
+                    chartInc.push(inc);
+                    chartExp.push(exp);
+                    
+                    // 변동률 (전월 지출 대비)
+                    let rate = 0;
+                    if(idx > 0) {
+                        let prevExp = yearlyExp[arr[idx-1]];
+                        if(prevExp > 0) rate = ((exp - prevExp) / prevExp) * 100;
+                    }
+                    chartRate.push(rate);
+
+                    tb.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-50 last:border-0">
+                            <td class="py-3 px-6 font-medium">${mk}</td>
+                            <td class="py-3 px-6 text-right">${inc.toLocaleString()}원</td>
+                            <td class="py-3 px-6 text-right font-medium text-rose-500">${exp.toLocaleString()}원</td>
+                            <td class="py-3 px-6 text-right font-bold text-emerald-600">${net.toLocaleString()}원</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Mixed Chart (바 + 꺾은선) 그리기
+            if(mixedChart) mixedChart.destroy();
+            mixedChart = new Chart(document.getElementById('mixedChart').getContext('2d'), {
                 type: 'bar',
-                data: { labels: Object.keys(trendMap).sort(), datasets: [{ label: '총 지출', data: Object.keys(trendMap).sort().map(k => trendMap[k]), backgroundColor: '#cbd5e1', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } }
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        { type: 'line', label: '지출 변동률(%)', data: chartRate, borderColor: '#f59e0b', backgroundColor: '#f59e0b', borderWidth: 2, yAxisID: 'y1', tension: 0.3 },
+                        { type: 'bar', label: '수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
+                        { type: 'bar', label: '지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', grid: {color: '#f1f5f9'} },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
             });
+
+            // 4. 히트맵 (카테고리 비중)
+            const ht = document.getElementById('heatmapContainer');
+            ht.innerHTML = '';
+            if(Object.keys(curCatMap).length === 0) {
+                ht.innerHTML = '<p class="text-sm text-slate-400">데이터가 없습니다.</p>';
+            } else {
+                let maxH = 0;
+                Object.values(curCatMap).forEach(v => { if(v > maxH) maxH = v; });
+                
+                let sortedCats = Object.keys(curCatMap).sort((a,b) => curCatMap[b] - curCatMap[a]);
+                let htmlStr = '<div class="grid grid-cols-[120px_1fr] gap-2">';
+                
+                sortedCats.forEach(c => {
+                    let val = curCatMap[c];
+                    let ratio = maxH > 0 ? (val / maxH) : 0;
+                    // Opacity 최소 0.15 ~ 최대 1
+                    let opacity = 0.15 + (ratio * 0.85); 
+                    htmlStr += `
+                        <div class="text-sm font-semibold text-slate-600 self-center truncate pr-2">${c}</div>
+                        <div class="h-10 rounded bg-[#ff6f59] heatmap-cell flex items-center px-3" style="opacity: ${opacity}">
+                            <span class="text-xs font-bold ${opacity > 0.5 ? 'text-white' : 'text-slate-800'}">${val.toLocaleString()}원</span>
+                        </div>
+                    `;
+                });
+                htmlStr += '</div>';
+                ht.innerHTML = htmlStr;
+            }
         }
 
-        function renderTable() {
-            const globalFiltered = getGlobalFilteredData();
-            const catSel = document.getElementById('filterCategory').value;
-            const payerSel = document.getElementById('filterPayer').value;
-            const userSel = document.getElementById('filterUser').value;
+        // =====================================
+        // 지출 내역 리스트 렌더링
+        // =====================================
+        function updateExpenseTable() {
+            const catSel = state.expCategory;
+            const payerSel = state.expPayer;
+            const userSel = state.expUser;
 
-            const finalData = globalFiltered.filter(d => {
+            const finalData = expenseData.filter(d => {
                 return (catSel === 'all' || d['구분'] === catSel) && 
-                       (payerSel === 'all' || d['결제자'] === payerSel) &&
+                       (payerSel === 'all' || d['지출자'] === payerSel) &&
                        (userSel === 'all' || d['사용자'] === userSel);
             });
 
-            document.getElementById('tableRowCount').innerText = `필터링된 내역: ${finalData.length}건`;
+            document.getElementById('tableRowCount').innerText = `${finalData.length}건`;
             const tbody = document.getElementById('expenseTableBody');
             
             if(!finalData.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">내역이 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400">조건에 맞는 내역이 없습니다.</td></tr>`;
             } else {
                 tbody.innerHTML = finalData.reverse().map(d => `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 px-4">${d['날짜']}</td>
-                        <td class="py-3 px-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-semibold">${d['구분']}</span></td>
-                        <td class="py-3 px-4 font-medium max-w-[200px] truncate">${d['항목']}</td>
-                        <td class="py-3 px-4 text-center text-slate-500 text-xs">${d['결제자']}</td>
-                        <td class="py-3 px-4 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-2 py-1 rounded-full text-xs font-semibold">${d['사용자']}</span></td>
-                        <td class="py-3 px-4 text-right font-bold text-slate-700">${d['금액'].toLocaleString()}원</td>
+                        <td class="py-3 px-6 text-slate-500">${d['날짜']}</td>
+                        <td class="py-3 px-6"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">${d['구분']}</span></td>
+                        <td class="py-3 px-6 font-medium text-slate-800">${d['항목']}</td>
+                        <td class="py-3 px-6 text-center text-slate-500">${d['지출자']}</td>
+                        <td class="py-3 px-6 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-2 py-1 rounded-full text-xs font-bold">${d['사용자']}</span></td>
+                        <td class="py-3 px-6 text-right font-extrabold text-slate-800">${d['금액'].toLocaleString()}원</td>
                     </tr>
                 `).join('');
             }
         }
-
-        window.onload = fetchData;
     </script>
 </body>
 </html>

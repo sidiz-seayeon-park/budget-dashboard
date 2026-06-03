@@ -16,7 +16,6 @@
         .card-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .hidden-view { display: none !important; }
         
-        /* 탭 버튼 디자인 */
         .filter-tab {
             padding: 8px 20px; border-radius: 9999px; font-size: 14px; font-weight: 700; cursor: pointer;
             background-color: #f1f5f9; color: #64748b; transition: all 0.2s ease; border: 2px solid transparent; margin-bottom: 8px;
@@ -26,17 +25,6 @@
     </style>
 </head>
 <body class="text-slate-700 flex h-screen overflow-hidden">
-
-    <script>
-        window.onerror = function(msg) {
-            const errEl = document.getElementById('syncStatus');
-            if(errEl) {
-                errEl.className = "px-6 py-2.5 text-sm font-bold text-white bg-red-600 shrink-0 z-50 shadow-md w-full text-center";
-                errEl.innerText = `🚨 에러 발생: ${msg} (시트 양식을 확인해주세요)`;
-            }
-            return false;
-        };
-    </script>
 
     <aside class="w-64 bg-[#222736] flex-col hidden lg:flex h-full z-10 shrink-0">
         <div class="h-16 flex items-center px-6 border-b border-white/10">
@@ -59,13 +47,17 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                     지출 (상세 내역)
                 </button>
+                <button onclick="switchTab('goals')" id="btn-goals" class="w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    목표 설정 조회
+                </button>
             </nav>
         </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto bg-[#f8fafc] flex flex-col relative w-full">
         
-        <div id="syncStatus" class="px-6 py-2 text-sm font-bold text-white bg-slate-500 w-full text-center sticky top-0 z-50 shadow-sm border-b border-white/20 transition-colors">
+        <div id="syncStatus" class="px-6 py-2.5 text-sm font-bold text-white bg-slate-500 w-full text-center sticky top-0 z-50 shadow-sm border-b border-white/20">
             ⏳ 구글 시트 데이터를 실시간으로 불러오는 중입니다...
         </div>
 
@@ -76,7 +68,6 @@
         <div class="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 w-full flex-1">
 
             <div id="view-dashboard" class="space-y-8">
-                
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 space-y-4">
                     <div class="flex flex-col lg:flex-row lg:items-start gap-4 border-b border-slate-100 pb-4">
                         <span class="text-sm font-extrabold text-slate-400 w-24 shrink-0 mt-2">기준 연도</span>
@@ -106,7 +97,7 @@
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-1.5 h-full bg-[#10b981]"></div>
                         <p class="text-sm font-semibold text-slate-500 mb-1">월 수입 - 지출 (잔액)</p>
-                        <h3 id="kpiNet" class="text-3xl font-black text-[#10b981] tracking-tight">0원</h3>
+                        <h3 id="kpiNet" class="text-2xl font-black text-[#10b981] tracking-tight">0원</h3>
                     </div>
                 </div>
 
@@ -140,24 +131,18 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
-                    <h3 class="text-base font-bold text-slate-800 mb-4">개인 목표 달성 현황 (용돈 & 품위유지비)</h3>
-                    <div id="goalProgressContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <p class="text-sm text-slate-400">데이터를 분석 중입니다...</p>
-                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-4">개인 지출 목표 관리 현황</h3>
+                    <div id="goalProgressContainer" class="w-full"></div>
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
                         <h3 class="text-base font-bold text-slate-800 mb-2">월별 수입/지출 및 지출 변동률</h3>
-                        <p class="text-xs text-slate-400 mb-6">선택된 연도의 전체 흐름을 보여줍니다.</p>
                         <div class="h-[350px] w-full"><canvas id="mixedChart"></canvas></div>
                     </div>
-                    
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
                         <h3 class="text-base font-bold text-slate-800 mb-2">카테고리별 지출 비중 (트리맵)</h3>
-                        <p class="text-xs text-slate-400 mb-4">박스가 클수록 지출 금액이 큰 항목입니다.</p>
-                        <div class="relative w-full h-[350px] overflow-hidden rounded-xl bg-slate-50" id="treemapContainer">
-                            </div>
+                        <div class="relative w-full h-[350px] overflow-hidden rounded-xl bg-slate-50" id="treemapContainer"></div>
                     </div>
                 </div>
 
@@ -224,6 +209,38 @@
                     </div>
                 </div>
             </div>
+
+            <div id="view-goals" class="hidden-view space-y-6">
+                <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
+                    <div class="flex flex-col lg:flex-row lg:items-start gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-24 shrink-0 mt-2">구분(지출자)</span>
+                        <div id="goalPayerTabs" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden flex flex-col min-h-[400px]">
+                    <div class="p-6 border-b border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800">시트 연동 목표 관리표</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="py-4 px-6 font-bold">기간(월)</th>
+                                    <th class="py-4 px-6 font-bold text-center">구분</th>
+                                    <th class="py-4 px-6 font-bold text-right text-blue-600">총 수입</th>
+                                    <th class="py-4 px-6 font-bold text-right text-purple-600">투자 목표</th>
+                                    <th class="py-4 px-6 font-bold text-right text-indigo-600">저축 목표</th>
+                                    <th class="py-4 px-6 font-bold text-right text-orange-600">개인 지출 목표 (용돈)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="goalTableBody" class="text-slate-600 divide-y divide-slate-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -233,32 +250,38 @@
 
         let expenseData = [];
         let goalDataArr = []; 
-        let mixedChart;
-        let treemapChart;
+        let mixedChart, treemapChart;
 
         let state = {
             dashYear: 'all', dashMonth: 'all', dashSpender: 'all',
-            expCategory: 'all', expPayer: 'all', expUser: 'all'
+            expCategory: 'all', expPayer: 'all', expUser: 'all',
+            goalPayer: 'all' // 목표설정 화면용 필터 상태 추가
         };
 
         function switchTab(tabName) {
             document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
             document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            document.getElementById('btn-goals').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            
             document.getElementById('view-dashboard').classList.add('hidden-view');
             document.getElementById('view-expenses').classList.add('hidden-view');
+            document.getElementById('view-goals').classList.add('hidden-view');
 
             if(tabName === 'dashboard') {
                 document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
                 document.getElementById('view-dashboard').classList.remove('hidden-view');
                 document.getElementById('header-title').innerText = "대시보드 종합 분석";
-            } else {
+            } else if(tabName === 'expenses') {
                 document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
                 document.getElementById('view-expenses').classList.remove('hidden-view');
                 document.getElementById('header-title').innerText = "지출 상세 조회";
+            } else {
+                document.getElementById('btn-goals').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
+                document.getElementById('view-goals').classList.remove('hidden-view');
+                document.getElementById('header-title').innerText = "목표 설정 조회";
             }
         }
 
-        // ⭐ 4. 완벽한 연도-월 추출기 (2026-05, 26/5, 심지어 연도 생략된 '5월'까지 처리)
         function extractDate(rawStr) {
             if(!rawStr) return null;
             const nums = rawStr.match(/\d+/g); 
@@ -274,33 +297,36 @@
             return null;
         }
 
+        function splitCsvLine(line) {
+            const vals = [];
+            let inQ = false, cur = '';
+            for (let i=0; i<line.length; i++) {
+                if (line[i] === '"') inQ = !inQ;
+                else if (line[i] === ',' && !inQ) { vals.push(cur.replace(/["']/g, '').trim()); cur = ''; }
+                else cur += line[i];
+            }
+            vals.push(cur.replace(/["']/g, '').trim());
+            return vals;
+        }
+
         function parseExpenseCSV(text) {
             if(!text) return [];
             const lines = text.split('\n').filter(l => l.trim());
             if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
+            const headers = splitCsvLine(lines[0]);
             
             const map = {
-                date: headers.findIndex(h => h.includes('날짜') || h.includes('일시')),
-                category: headers.findIndex(h => h.includes('구분') || h.includes('카테고리')),
+                date: headers.findIndex(h => h.includes('날짜')),
+                category: headers.findIndex(h => h.includes('구분')),
                 item: headers.findIndex(h => h.includes('항목') || h.includes('내용')),
-                amount: headers.findIndex(h => h.includes('금액') || h.includes('비용')),
+                amount: headers.findIndex(h => h.includes('금액')),
                 payer: headers.findIndex(h => h.includes('지출자') || h.includes('결제')),
                 user: headers.findIndex(h => h.includes('사용자') || h.includes('실사용'))
             };
 
             const dataArr = [];
             for(let j=1; j<lines.length; j++) {
-                const line = lines[j];
-                const vals = [];
-                let inQ = false, cur = '';
-                for (let i=0; i<line.length; i++) {
-                    if (line[i] === '"') inQ = !inQ;
-                    else if (line[i] === ',' && !inQ) { vals.push(cur.replace(/["']/g, '').trim()); cur = ''; }
-                    else cur += line[i];
-                }
-                vals.push(cur.replace(/["']/g, '').trim());
-
+                const vals = splitCsvLine(lines[j]);
                 let row = {};
                 let rawDateStr = map.date !== -1 ? vals[map.date] : vals[0];
                 let dObj = extractDate(rawDateStr);
@@ -311,7 +337,7 @@
                 row['항목'] = map.item !== -1 ? (vals[map.item] || '-') : '-';
                 row['지출자'] = map.payer !== -1 && vals[map.payer] ? vals[map.payer] : '-';
                 row['사용자'] = map.user !== -1 && vals[map.user] ? vals[map.user] : '공통';
-                let amtStr = map.amount !== -1 ? vals[map.amount] : '0';
+                let amtStr = map.amount !== -1 ? (vals[map.amount]||'0') : '0';
                 row['금액'] = parseInt(amtStr.replace(/[^0-9-]/g, '')) || 0;
                 row['날짜_원본'] = rawDateStr;
                 
@@ -320,22 +346,21 @@
             return dataArr;
         }
 
-        // ⭐ 5. 목표 달성 관리를 위해 모든 컬럼 데이터를 저장하는 파서
         function parseGoalCSV(text) {
             if(!text) return [];
             const lines = text.split('\n').filter(l => l.trim());
             if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
-            const mIdx = headers.findIndex(h => h.includes('월') || h.includes('날짜') || h.includes('기간'));
+            const headers = splitCsvLine(lines[0]);
+            const mIdx = headers.findIndex(h => h.includes('기간') || h.includes('월') || h.includes('날짜'));
             
             let arr = [];
             for(let j=1; j<lines.length; j++) {
-                const vals = lines[j].split(',').map(v => v.replace(/["']/g, '').trim());
+                const vals = splitCsvLine(lines[j]);
                 if(mIdx !== -1 && vals[mIdx]) {
                     let dObj = extractDate(vals[mIdx]);
                     if(dObj) {
                         let rowObj = { year: dObj.year, month: dObj.month, raw: {} };
-                        headers.forEach((h, i) => { rowObj.raw[h] = vals[i]; });
+                        headers.forEach((h, i) => { rowObj.raw[h] = vals[i] || ''; });
                         arr.push(rowObj);
                     }
                 }
@@ -351,13 +376,9 @@
                     fetch(goalCsvUrl).catch(e => { return { ok: false }; })
                 ]);
                 
-                if(!expRes.ok) throw new Error("지출내역 데이터를 가져오지 못했습니다.");
-                
                 expenseData = parseExpenseCSV(await expRes.text());
                 if(goalRes.ok) goalDataArr = parseGoalCSV(await goalRes.text());
                 
-                if(expenseData.length === 0) throw new Error("지출 데이터가 비어있습니다.");
-
                 let maxYear = 0, maxMonth = 0;
                 expenseData.forEach(d => { if(parseInt(d.year) > maxYear) maxYear = parseInt(d.year); });
                 expenseData.forEach(d => { if(d.year == maxYear && parseInt(d.month) > maxMonth) maxMonth = parseInt(d.month); });
@@ -369,7 +390,7 @@
                 updateAllViews();
 
                 statusEl.className = "px-6 py-2 text-sm font-bold text-white bg-emerald-500 w-full text-center sticky top-0 z-50 shadow-sm transition-all";
-                statusEl.innerText = `🟢 데이터 연동 완료 (지출 ${expenseData.length}건)`;
+                statusEl.innerText = `🟢 데이터 실시간 연동 완료 (지출 ${expenseData.length}건 / 목표 ${goalDataArr.length}건 로드)`;
             } catch (err) {
                 console.error(err);
                 statusEl.className = "px-6 py-2 text-sm font-bold text-white bg-rose-500 w-full text-center sticky top-0 z-50 shadow-sm";
@@ -410,7 +431,6 @@
                 if (d['사용자'] && d['사용자'] !== '-') users.add(d['사용자']);
             });
 
-            // ⭐ 2. 지출자 탭 정렬 순서 강제 적용 (재원 -> 세연 -> 공통) ⭐
             const order = { '재원': 1, '세연': 2, '공통': 3 };
             let sortedPayers = Array.from(payers).sort((a, b) => (order[a]||99) - (order[b]||99));
 
@@ -421,17 +441,18 @@
             createTabs('expCategoryTabs', Array.from(cats).map(c=>({value:c, label:c})), 'expCategory');
             createTabs('expPayerTabs', sortedPayers.map(p=>({value:p, label:p})), 'expPayer');
             createTabs('expUserTabs', Array.from(users).map(u=>({value:u, label:u})), 'expUser');
+
+            // 목표설정 조회 전용 필터 적용
+            createTabs('goalPayerTabs', sortedPayers.filter(p => p !== '공통').map(p=>({value:p, label:p})), 'goalPayer');
         }
 
         function updateAllViews() {
-            try { updateDashboard(); updateExpenseTable(); } 
+            try { updateDashboard(); updateExpenseTable(); updateGoalTable(); } 
             catch(e) { console.error(e); }
         }
 
-        // 진행바 렌더링 헬퍼
         function renderProgressBar(title, target, actual) {
-            if(target === 0 && actual === 0) return '';
-            let percent = target > 0 ? (actual / target) * 100 : 100;
+            let percent = target > 0 ? (actual / target) * 100 : 0;
             let over = actual > target;
             let diff = Math.abs(target - actual);
             let color = over ? 'bg-rose-500' : 'bg-emerald-500';
@@ -440,65 +461,60 @@
             if(target === 0) msg = "목표 미설정";
 
             return `
-                <div class="p-5 border border-slate-100 rounded-xl bg-slate-50 flex flex-col justify-between">
-                    <div class="flex justify-between items-end mb-3">
+                <div class="p-5 border border-slate-100 rounded-xl bg-slate-50 flex flex-col justify-between w-full max-w-sm mx-auto">
+                    <div class="flex justify-between items-end mb-4">
                         <div>
                             <p class="text-sm font-extrabold text-slate-700">${title}</p>
-                            <p class="text-[11px] text-slate-400 mt-0.5">목표: ${target.toLocaleString()}원</p>
+                            <p class="text-xs text-slate-400 mt-1">목표: ${target.toLocaleString()}원</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-lg font-black ${txtColor} tracking-tight">${actual.toLocaleString()}원</p>
-                            <p class="text-[11px] font-bold mt-0.5 ${txtColor}">${msg}</p>
+                            <p class="text-xl font-black ${txtColor} tracking-tight">${actual.toLocaleString()}원</p>
+                            <p class="text-[11px] font-bold mt-1 ${txtColor}">${msg}</p>
                         </div>
                     </div>
-                    <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                        <div class="${color} h-2 rounded-full transition-all duration-500" style="width: ${Math.min(percent, 100)}%"></div>
+                    <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner">
+                        <div class="${color} h-3 rounded-full transition-all duration-500" style="width: ${Math.min(percent, 100)}%"></div>
                     </div>
                 </div>
             `;
         }
 
-        // =====================================
-        // 대시보드 뷰
-        // =====================================
+        // 대시보드
         function updateDashboard() {
             const y = state.dashYear, m = state.dashMonth, s = state.dashSpender;
+            let targetInc = 0, targetPersonal = 0;
             
-            let targetInc = 0, targetPocket = 0, targetGroom = 0;
-            
-            // 동적 목표 파싱 (어떤 컬럼명이든 '수입', '용돈', '품위' 글자가 포함되면 합산)
             goalDataArr.forEach(g => {
                 if(g.year === y && g.month === m) {
-                    let nameKey = Object.keys(g.raw).find(k => k.includes('이름') || k.includes('지출자'));
-                    if(s !== 'all' && nameKey && !g.raw[nameKey].includes(s)) return; // 지출자 필터 적용
+                    let nameKey = Object.keys(g.raw).find(k => k.includes('구분') || k.includes('이름') || k.includes('지출자'));
+                    if(s !== 'all' && nameKey && g.raw[nameKey] && !g.raw[nameKey].includes(s)) return;
 
                     Object.keys(g.raw).forEach(k => {
                         let val = parseInt((g.raw[k]||'').toString().replace(/[^0-9]/g, '')) || 0;
-                        if(s !== 'all' && (k.includes('재원') || k.includes('세연')) && !k.includes(s)) return;
-                        
                         if(k.includes('수입')) targetInc += val;
-                        if(k.includes('용돈')) targetPocket += val;
-                        if(k.includes('품위') || k.includes('유지비')) targetGroom += val;
+                        if(k.includes('개인') || k.includes('지출 목표') || k.includes('용돈') || k.includes('품위')) targetPersonal += val;
                     });
                 }
             });
 
-            let monthlyExp = 0, actualPocket = 0, actualGroom = 0;
+            let monthlyExp = 0, actualPersonal = 0;
             let curCatMap = {}, prevCatMap = {};
             let prevM = parseInt(m) - 1, prevY = parseInt(y);
             if(prevM === 0) { prevM = 12; prevY -= 1; }
 
             expenseData.forEach(d => {
                 let matchSpender = (s === 'all' || d['지출자'] === s);
-                if(d.year === y && d.month === m && matchSpender) {
-                    monthlyExp += d['금액'];
-                    curCatMap[d['구분']] = (curCatMap[d['구분']] || 0) + d['금액'];
-                    
-                    if(d['구분'].includes('용돈') || d['항목'].includes('용돈')) actualPocket += d['금액'];
-                    if(d['구분'].includes('품위') || d['항목'].includes('품위')) actualGroom += d['금액'];
-                }
-                if(d.year === prevY.toString() && d.month === prevM.toString().padStart(2, '0') && matchSpender) {
-                    prevCatMap[d['구분']] = (prevCatMap[d['구분']] || 0) + d['금액'];
+                if(matchSpender) {
+                    if(d.year === y && d.month === m) {
+                        monthlyExp += d['금액'];
+                        curCatMap[d['구분']] = (curCatMap[d['구분']] || 0) + d['금액'];
+                        if(d['구분'].includes('용돈') || d['항목'].includes('용돈') || d['구분'].includes('품위') || d['항목'].includes('품위') || d['구분'].includes('개인')) {
+                            actualPersonal += d['금액'];
+                        }
+                    }
+                    if(d.year === prevY.toString() && d.month === prevM.toString().padStart(2, '0')) {
+                        prevCatMap[d['구분']] = (prevCatMap[d['구분']] || 0) + d['금액'];
+                    }
                 }
             });
 
@@ -506,11 +522,11 @@
             document.getElementById('kpiExpense').innerText = monthlyExp.toLocaleString() + '원';
             document.getElementById('kpiNet').innerText = (targetInc - monthlyExp).toLocaleString() + '원';
 
-            // 개인 목표 달성 위젯 렌더링
             let goalHtml = '';
-            if(targetPocket > 0 || actualPocket > 0) goalHtml += renderProgressBar('💸 월별 용돈 사용량', targetPocket, actualPocket);
-            if(targetGroom > 0 || actualGroom > 0) goalHtml += renderProgressBar('👔 품위유지비 사용량', targetGroom, actualGroom);
-            if(goalHtml === '') goalHtml = '<p class="text-sm text-slate-400">설정된 목표 데이터(용돈/품위유지비)가 없거나 매칭되지 않습니다.</p>';
+            if(targetPersonal > 0 || actualPersonal > 0) {
+                let title = s === 'all' ? '개인 지출 (용돈/품위유지비 합계)' : `${s}님 개인 지출 목표 현황`;
+                goalHtml = renderProgressBar(title, targetPersonal, actualPersonal);
+            } else goalHtml = '<p class="text-sm text-slate-400 mt-2">목표 데이터가 설정되지 않았습니다.</p>';
             document.getElementById('goalProgressContainer').innerHTML = goalHtml;
 
             // 인사이트
@@ -519,7 +535,6 @@
                 if(curCatMap[c] > maxAmt) { maxAmt = curCatMap[c]; maxCat = c; }
                 if(curCatMap[c] < minAmt) { minAmt = curCatMap[c]; minCat = c; }
             });
-
             document.getElementById('insightMaxCat').innerText = maxCat;
             document.getElementById('insightMaxAmt').innerText = maxAmt.toLocaleString() + '원';
             if(maxCat !== '-' && prevCatMap[maxCat] !== undefined) {
@@ -534,19 +549,17 @@
                 document.getElementById('insightMinDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${diff>0?'🔺 증가':'🔽 감소'}</b>`;
             } else document.getElementById('insightMinDesc').innerText = "전월 비교 데이터 없음";
 
-            // 월별 테이블 & 차트
+            // 연간 차트
             let yearlyInc = {}, yearlyExp = {};
             for(let i=1; i<=12; i++) {
                 let mStr = i.toString().padStart(2, '0');
                 yearlyInc[mStr] = 0; yearlyExp[mStr] = 0;
             }
-
             goalDataArr.forEach(g => {
                 if(g.year === y) {
-                    let nameKey = Object.keys(g.raw).find(k => k.includes('이름') || k.includes('지출자'));
+                    let nameKey = Object.keys(g.raw).find(k => k.includes('구분') || k.includes('이름') || k.includes('지출자'));
                     if(s !== 'all' && nameKey && !g.raw[nameKey].includes(s)) return;
                     Object.keys(g.raw).forEach(k => {
-                        if(s !== 'all' && (k.includes('재원') || k.includes('세연')) && !k.includes(s)) return;
                         if(k.includes('수입')) {
                             let val = parseInt((g.raw[k]||'').toString().replace(/[^0-9]/g, '')) || 0;
                             yearlyInc[g.month] += val;
@@ -554,7 +567,6 @@
                     });
                 }
             });
-
             expenseData.forEach(d => {
                 if(d.year === y && (s === 'all' || d['지출자'] === s)) yearlyExp[d.month] = (yearlyExp[d.month] || 0) + d['금액'];
             });
@@ -562,17 +574,14 @@
             const tb = document.getElementById('monthlyTableBody');
             tb.innerHTML = '';
             let chartLabels = [], chartInc = [], chartExp = [], chartRate = [];
-            
             Object.keys(yearlyInc).sort().forEach((mStr, idx, arr) => {
                 let inc = yearlyInc[mStr], exp = yearlyExp[mStr], net = inc - exp;
                 if(inc > 0 || exp > 0) {
-                    chartLabels.push(parseInt(mStr)+'월');
-                    chartInc.push(inc); chartExp.push(exp);
+                    chartLabels.push(parseInt(mStr)+'월'); chartInc.push(inc); chartExp.push(exp);
                     let rate = idx > 0 && yearlyExp[arr[idx-1]] > 0 ? ((exp - yearlyExp[arr[idx-1]]) / yearlyExp[arr[idx-1]]) * 100 : 0;
                     chartRate.push(rate);
-
                     tb.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <tr class="hover:bg-slate-50 border-b border-slate-50">
                             <td class="py-4 px-6 font-bold text-slate-800">${y}.${mStr}</td>
                             <td class="py-4 px-6 text-right">${inc.toLocaleString()}원</td>
                             <td class="py-4 px-6 text-right font-bold text-rose-500">${exp.toLocaleString()}원</td>
@@ -583,68 +592,105 @@
             });
 
             if(mixedChart) mixedChart.destroy();
-            const ctx = document.getElementById('mixedChart');
-            if(ctx) {
-                mixedChart = new Chart(ctx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [
-                            { type: 'line', label: '지출 변동률(%)', data: chartRate, borderColor: '#f59e0b', backgroundColor: '#f59e0b', borderWidth: 3, yAxisID: 'y1', tension: 0.4 },
-                            { type: 'bar', label: '수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
-                            { type: 'bar', label: '지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } } }
-                });
-            }
+            mixedChart = new Chart(document.getElementById('mixedChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        { type: 'line', label: '지출 변동률(%)', data: chartRate, borderColor: '#f59e0b', backgroundColor: '#f59e0b', borderWidth: 3, yAxisID: 'y1', tension: 0.4 },
+                        { type: 'bar', label: '수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
+                        { type: 'bar', label: '지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } } }
+            });
 
-            // ⭐ 3. строго 제한된 높이의 트리맵 (Square Pie) ⭐
+            // 트리맵
             const ht = document.getElementById('treemapContainer');
             if(ht) {
-                if(Object.keys(curCatMap).length === 0) {
-                    ht.innerHTML = '<p class="text-sm text-slate-400 p-10 text-center">데이터가 없습니다.</p>';
-                } else {
+                if(Object.keys(curCatMap).length === 0) ht.innerHTML = '<p class="text-sm text-slate-400 mt-20 text-center">데이터가 없습니다.</p>';
+                else {
                     let tData = Object.keys(curCatMap).map(c => ({ x: c, y: curCatMap[c] }));
                     if(treemapChart) treemapChart.destroy();
-                    var options = {
-                        series: [{ data: tData }],
-                        legend: { show: false },
-                        chart: { type: 'treemap', height: 350, toolbar: { show: false }, parentHeightOffset: 0 },
-                        colors: ['#ff6f59', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'],
-                        plotOptions: { treemap: { distributed: true, enableShades: false } },
-                        dataLabels: { enabled: true, style: { fontSize: '13px', fontFamily: 'Inter', fontWeight: 'bold' }, formatter: function(text, op) { return [text, op.value.toLocaleString() + '원']; } },
+                    treemapChart = new ApexCharts(ht, {
+                        series: [{ data: tData }], legend: { show: false },
+                        chart: { type: 'treemap', height: 350, toolbar: { show: false } },
+                        colors: ['#ff6f59'], plotOptions: { treemap: { distributed: false, enableShades: true, shadeIntensity: 0.7 } },
+                        dataLabels: { enabled: true, style: { fontSize: '14px', fontWeight: 'bold' }, formatter: function(text) { return [text]; } },
                         tooltip: { y: { formatter: function(val) { return val.toLocaleString() + '원' } } }
-                    };
-                    treemapChart = new ApexCharts(ht, options);
+                    });
                     treemapChart.render();
                 }
             }
         }
 
+        // 지출 테이블
         function updateExpenseTable() {
             const catSel = state.expCategory, payerSel = state.expPayer, userSel = state.expUser;
             const finalData = expenseData.filter(d => (catSel === 'all' || d['구분'] === catSel) && (payerSel === 'all' || d['지출자'] === payerSel) && (userSel === 'all' || d['사용자'] === userSel));
-
             const totalSum = finalData.reduce((acc, curr) => acc + curr['금액'], 0);
             document.getElementById('tableRowCount').innerText = `${finalData.length}건`;
             document.getElementById('tableTotalSum').innerText = `합계: ${totalSum.toLocaleString()}원`;
             
             const tbody = document.getElementById('expenseTableBody');
-            if(!finalData.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400 font-bold">조건에 맞는 내역이 없습니다.</td></tr>`;
-            } else {
-                tbody.innerHTML = finalData.reverse().map(d => `
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
-                        <td class="py-4 px-6 text-slate-500 font-medium">${d['날짜_원본']}</td>
-                        <td class="py-4 px-6"><span class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-md text-xs font-bold">${d['구분']}</span></td>
-                        <td class="py-4 px-6 font-bold text-slate-800">${d['항목']}</td>
-                        <td class="py-4 px-6 text-center text-slate-500 font-medium">${d['지출자']}</td>
-                        <td class="py-4 px-6 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">${d['사용자']}</span></td>
-                        <td class="py-4 px-6 text-right font-black text-slate-800 text-base">${d['금액'].toLocaleString()}원</td>
-                    </tr>
-                `).join('');
+            tbody.innerHTML = finalData.length === 0 ? `<tr><td colspan="6" class="py-10 text-center font-bold text-slate-400">내역이 없습니다.</td></tr>` : finalData.reverse().map(d => `
+                <tr class="hover:bg-slate-50 border-b border-slate-50 text-slate-600">
+                    <td class="py-4 px-6 font-medium">${d['날짜_원본']}</td>
+                    <td class="py-4 px-6"><span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold">${d['구분']}</span></td>
+                    <td class="py-4 px-6 font-bold text-slate-800">${d['항목']}</td>
+                    <td class="py-4 px-6 text-center">${d['지출자']}</td>
+                    <td class="py-4 px-6 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-2 py-1 rounded-full text-xs font-bold">${d['사용자']}</span></td>
+                    <td class="py-4 px-6 text-right font-black text-slate-800">${d['금액'].toLocaleString()}원</td>
+                </tr>
+            `).join('');
+        }
+
+        // ⭐ 신규: 목표 설정 데이터 테이블 렌더러 ⭐
+        function updateGoalTable() {
+            const pSel = state.goalPayer;
+            const tbody = document.getElementById('goalTableBody');
+            if(!tbody) return;
+
+            // 필터링 거치기
+            const filteredGoals = goalDataArr.filter(g => {
+                let nameKey = Object.keys(g.raw).find(k => k.includes('구분') || k.includes('이름') || k.includes('지출자'));
+                return (pSel === 'all' || (nameKey && g.raw[nameKey].includes(pSel)));
+            });
+
+            if(filteredGoals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400 font-bold">목표 정보가 없습니다.</td></tr>`;
+                return;
             }
+
+            tbody.innerHTML = filteredGoals.map(g => {
+                let keys = Object.keys(g.raw);
+                let nameKey = keys.find(k => k.includes('구분') || k.includes('이름') || k.includes('지출자')) || '';
+                let incKey = keys.find(k => k.includes('수입')) || '';
+                let invKey = keys.find(k => k.includes('투자')) || '';
+                let savKey = keys.find(k => k.includes('저축')) || '';
+                let prsKey = keys.find(k => k.includes('개인') || k.includes('지출 목표') || k.includes('용돈') || k.includes('품위')) || '';
+
+                let name = nameKey ? g.raw[nameKey] : '-';
+                let inc = incKey ? parseInt(g.raw[incKey].replace(/[^0-9]/g, '')) || 0 : 0;
+                let inv = invKey ? g.raw[invKey] : '미정';
+                let sav = savKey ? g.raw[savKey] : '미정';
+                let prs = prsKey ? parseInt(g.raw[prsKey].replace(/[^0-9]/g, '')) || 0 : 0;
+
+                // 숫자가 있는 것은 원 단위 포맷, 글자(미정 등)는 그대로 표기
+                let invStr = isNaN(inv.replace(/[^0-9]/g, '')) || inv === '미정' ? inv : parseInt(inv.replace(/[^0-9]/g, '')).toLocaleString() + '원';
+                let savStr = isNaN(sav.replace(/[^0-9]/g, '')) || sav === '미정' ? sav : parseInt(sav.replace(/[^0-9]/g, '')).toLocaleString() + '원';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50 text-slate-600">
+                        <td class="py-4 px-6 font-bold text-slate-800">${g.year}.${g.month}</td>
+                        <td class="py-4 px-6 text-center"><span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-md text-xs font-bold">${name}</span></td>
+                        <td class="py-4 px-6 text-right font-black text-blue-600">${inc.toLocaleString()}원</td>
+                        <td class="py-4 px-6 text-right font-semibold text-purple-600">${invStr}</td>
+                        <td class="py-4 px-6 text-right font-semibold text-indigo-600">${savStr}</td>
+                        <td class="py-4 px-6 text-right font-black text-orange-600">${prs.toLocaleString()}원</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         window.onload = fetchData;

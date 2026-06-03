@@ -43,4 +43,602 @@
             <p class="px-2 text-[11px] font-bold text-[#8c98a8] tracking-wider mb-3">MAIN MENU</p>
             <nav class="space-y-2">
                 <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition">
-                    <svg class="w-5 h-5 mr-
+                    <svg class="w-5 h-5 mr-3 text-[#ff6f59]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    대시보드 (분석)
+                </button>
+                <button onclick="switchTab('expenses')" id="btn-expenses" class="w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    지출 (상세 내역)
+                </button>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto bg-[#f8fafc] flex flex-col">
+        
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-20">
+            <h2 id="header-title" class="text-xl font-extrabold text-slate-800 tracking-tight">대시보드 종합 분석</h2>
+        </header>
+
+        <div id="syncStatus" class="px-8 py-2.5 text-sm font-bold text-white bg-slate-400 shrink-0 shadow-sm transition-colors duration-300">
+            🔄 구글 시트와 연결을 시도하고 있습니다...
+        </div>
+
+        <div class="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 w-full flex-1">
+
+            <div id="view-dashboard" class="space-y-8">
+                
+                <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">기준 연도</span>
+                        <div id="dashYearTabs" class="flex flex-wrap gap-3"><span class="text-slate-300 text-sm">데이터 로딩 대기중...</span></div>
+                    </div>
+                    <div class="w-full h-px bg-slate-100"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">기준 월</span>
+                        <div id="dashMonthTabs" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <div class="w-full h-px bg-slate-100"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">지출자</span>
+                        <div id="dashSpenderTabs" class="flex flex-wrap gap-3"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#3b82f6]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 목표 수입</p>
+                        <h3 id="kpiIncome" class="text-2xl font-black text-slate-800 tracking-tight">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#ef4444]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 실제 지출</p>
+                        <h3 id="kpiExpense" class="text-2xl font-black text-[#ef4444] tracking-tight">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#10b981]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 수입 - 지출 (잔액)</p>
+                        <h3 id="kpiNet" class="text-2xl font-black text-[#10b981] tracking-tight">0원</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden bg-slate-50">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#8b5cf6]"></div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">선택 월까지 누적 잔액</p>
+                        <h3 id="kpiCumulative" class="text-2xl font-black text-[#8b5cf6] tracking-tight">0원</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">올해 1월부터 합산</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-bold text-rose-500 mb-1 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                                가장 많이 소비한 항목
+                            </p>
+                            <h4 id="insightMaxCat" class="text-xl font-black text-slate-800">-</h4>
+                            <p id="insightMaxDesc" class="text-sm text-slate-500 mt-2">전월 비교 데이터 없음</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="insightMaxAmt" class="text-2xl font-black text-slate-800 tracking-tight">0원</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-bold text-emerald-500 mb-1 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                가장 적게 소비한 항목
+                            </p>
+                            <h4 id="insightMinCat" class="text-xl font-black text-slate-800">-</h4>
+                            <p id="insightMinDesc" class="text-sm text-slate-500 mt-2">전월 비교 데이터 없음</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="insightMinAmt" class="text-2xl font-black text-slate-800 tracking-tight">0원</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
+                        <h3 class="text-base font-bold text-slate-800 mb-2">월별 수입/지출 및 지출 변동률</h3>
+                        <p class="text-xs text-slate-400 mb-6">선택된 연도의 전체 흐름을 보여줍니다.</p>
+                        <div class="h-72 w-full flex-1"><canvas id="mixedChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
+                        <h3 class="text-base font-bold text-slate-800 mb-2">카테고리별 지출 비중 (히트맵)</h3>
+                        <p class="text-xs text-slate-400 mb-4">색상이 진할수록 지출 금액이 큰 항목입니다.</p>
+                        <div class="flex-1 overflow-y-auto pr-2 max-h-72">
+                            <div id="heatmapContainer" class="min-w-[400px] flex flex-col gap-3">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h3 class="text-base font-bold text-slate-800">월별 수입/지출 상세 현황 (표)</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="py-4 px-6 font-bold">연/월</th>
+                                    <th class="py-4 px-6 font-bold text-right text-blue-600">월 목표 수입</th>
+                                    <th class="py-4 px-6 font-bold text-right text-red-500">월 지출</th>
+                                    <th class="py-4 px-6 font-bold text-right text-emerald-600">월 잔액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyTableBody" class="divide-y divide-slate-100 text-slate-700">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-expenses" class="hidden-view space-y-6">
+                <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">카테고리</span>
+                        <div id="expCategoryTabs" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <div class="w-full h-px bg-slate-100"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">지출자</span>
+                        <div id="expPayerTabs" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <div class="w-full h-px bg-slate-100"></div>
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <span class="text-sm font-extrabold text-slate-400 w-20 tracking-wider">실사용자</span>
+                        <div id="expUserTabs" class="flex flex-wrap gap-3"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-280px)] min-h-[400px]">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white z-10 sticky top-0">
+                        <h3 class="text-lg font-bold text-slate-800">상세 내역 리스트</h3>
+                        <span id="tableRowCount" class="text-sm font-bold bg-[#ff6f59] text-white px-4 py-1.5 rounded-full shadow-sm">0건</span>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
+                                <tr class="text-slate-500">
+                                    <th class="py-4 px-6 font-bold">날짜</th>
+                                    <th class="py-4 px-6 font-bold">구분</th>
+                                    <th class="py-4 px-6 font-bold">항목 내용</th>
+                                    <th class="py-4 px-6 font-bold text-center">지출자</th>
+                                    <th class="py-4 px-6 font-bold text-center">실사용자</th>
+                                    <th class="py-4 px-6 font-bold text-right">금액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody" class="text-slate-600 divide-y divide-slate-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const expenseCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfgT2MH4Hi34iUa5WYX-W1MiE2hjQsl2TKF2e2rVRxP4HitJYvBKkONHkdE7786Du8CmhyfPs4lbxV/pub?gid=0&single=true&output=csv";
+        const goalCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfgT2MH4Hi34iUa5WYX-W1MiE2hjQsl2TKF2e2rVRxP4HitJYvBKkONHkdE7786Du8CmhyfPs4lbxV/pub?gid=1286578052&single=true&output=csv";
+
+        let expenseData = [];
+        let goalData = {}; 
+        let mixedChart;
+
+        let state = {
+            dashYear: 'all', dashMonth: 'all', dashSpender: 'all',
+            expCategory: 'all', expPayer: 'all', expUser: 'all'
+        };
+
+        function switchTab(tabName) {
+            document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition";
+            document.getElementById('view-dashboard').classList.add('hidden-view');
+            document.getElementById('view-expenses').classList.add('hidden-view');
+
+            if(tabName === 'dashboard') {
+                document.getElementById('btn-dashboard').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
+                document.getElementById('view-dashboard').classList.remove('hidden-view');
+                document.getElementById('header-title').innerText = "대시보드 종합 분석";
+            } else {
+                document.getElementById('btn-expenses').className = "w-full flex items-center px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition";
+                document.getElementById('view-expenses').classList.remove('hidden-view');
+                document.getElementById('header-title').innerText = "지출 상세 조회";
+            }
+        }
+
+        // 강력한 날짜 추출 함수 (어떤 문자열이든 숫자만 뽑아냄)
+        function extractDate(rawStr) {
+            if(!rawStr) return null;
+            const nums = rawStr.match(/\d+/g); 
+            if(nums && nums.length >= 2) {
+                let y = nums[0].length === 2 ? '20' + nums[0] : nums[0]; // 24 -> 2024
+                let m = nums[1].padStart(2, '0'); // 5 -> 05
+                return { year: y, month: m };
+            }
+            return null;
+        }
+
+        function parseExpenseCSV(text) {
+            if(!text) return [];
+            const lines = text.split('\n').filter(l => l.trim());
+            if (!lines.length) return [];
+            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
+            
+            const map = {
+                date: headers.find(h => h.includes('날짜')) || headers[0],
+                category: headers.find(h => h.includes('구분')) || headers[1],
+                item: headers.find(h => h.includes('항목') || h.includes('내용')) || headers[2],
+                amount: headers.find(h => h.includes('금액')) || headers[3],
+                payer: headers.find(h => h.includes('지출자') || h.includes('결제자') || h.includes('카드')) || '',
+                user: headers.find(h => h.includes('사용자') || h.includes('실사용') || h.includes('공통')) || ''
+            };
+
+            const dataArr = [];
+            for(let j=1; j<lines.length; j++) {
+                const line = lines[j];
+                const vals = [];
+                let inQ = false, cur = '';
+                for (let i=0; i<line.length; i++) {
+                    if (line[i] === '"') inQ = !inQ;
+                    else if (line[i] === ',' && !inQ) { vals.push(cur.replace(/["']/g, '').trim()); cur = ''; }
+                    else cur += line[i];
+                }
+                vals.push(cur.replace(/["']/g, '').trim());
+
+                let row = {};
+                let rawDateStr = vals[headers.indexOf(map.date)] || '';
+                let dObj = extractDate(rawDateStr);
+                
+                row['year'] = dObj ? dObj.year : '';
+                row['month'] = dObj ? dObj.month : '';
+                row['구분'] = vals[headers.indexOf(map.category)] || '-';
+                row['항목'] = vals[headers.indexOf(map.item)] || '-';
+                row['지출자'] = map.payer ? (vals[headers.indexOf(map.payer)] || '-') : '-';
+                row['사용자'] = map.user ? (vals[headers.indexOf(map.user)] || '-') : '공통'; 
+                row['금액'] = parseInt((vals[headers.indexOf(map.amount)]||'0').replace(/[^0-9-]/g, '')) || 0;
+                row['날짜_원본'] = rawDateStr;
+                
+                // 데이터가 유효한 경우만 푸시
+                if(row['year'] && row['month']) dataArr.push(row);
+            }
+            return dataArr;
+        }
+
+        function parseGoalCSV(text) {
+            if(!text) return {};
+            const lines = text.split('\n').filter(l => l.trim());
+            if (lines.length < 2) return {};
+            const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').trim());
+            const mIdx = headers.findIndex(h => h.includes('월') || h.includes('날짜') || h.includes('기간'));
+            const iIdx = headers.findIndex(h => h.includes('수입') || h.includes('월급') || h.includes('목표'));
+            
+            let goals = {};
+            for(let j=1; j<lines.length; j++) {
+                const vals = lines[j].split(',').map(v => v.replace(/["']/g, '').trim());
+                if(mIdx !== -1 && iIdx !== -1) {
+                    let dObj = extractDate(vals[mIdx]);
+                    let inc = parseInt((vals[iIdx]||'0').replace(/[^0-9]/g, '')) || 0;
+                    if (dObj && inc) goals[`${dObj.year}-${dObj.month}`] = inc;
+                }
+            }
+            return goals;
+        }
+
+        // ⭐ 에러를 방지하는 강력한 데이터 Fetch 함수 ⭐
+        async function fetchData() {
+            const statusEl = document.getElementById('syncStatus');
+            try {
+                let expText = "";
+                let goalText = "";
+                
+                // 1. 지출내역 가져오기
+                try {
+                    const expRes = await fetch(expenseCsvUrl);
+                    if(!expRes.ok) throw new Error();
+                    expText = await expRes.text();
+                } catch(e) { throw new Error("지출내역 시트에 접근할 수 없습니다. 링크를 확인해주세요."); }
+
+                // 2. 목표설정 가져오기 (실패해도 진행)
+                try {
+                    const goalRes = await fetch(goalCsvUrl);
+                    if(goalRes.ok) goalText = await goalRes.text();
+                } catch(e) { console.warn("목표설정 연동 실패"); }
+
+                expenseData = parseExpenseCSV(expText);
+                goalData = parseGoalCSV(goalText);
+                
+                if(expenseData.length === 0) {
+                    throw new Error("지출내역 시트에서 데이터를 찾을 수 없습니다. 양식을 확인해주세요.");
+                }
+
+                // 최신 연/월 찾기
+                let maxYear = 0, maxMonth = 0;
+                expenseData.forEach(d => {
+                    if(d.year && parseInt(d.year) > maxYear) maxYear = parseInt(d.year);
+                });
+                expenseData.forEach(d => {
+                    if(d.year == maxYear && d.month && parseInt(d.month) > maxMonth) maxMonth = parseInt(d.month);
+                });
+                
+                if(maxYear) state.dashYear = maxYear.toString();
+                if(maxMonth) state.dashMonth = maxMonth.toString().padStart(2, '0');
+
+                // 렌더링 실행
+                renderTabButtons();
+                updateAllViews();
+
+                // 성공 메시지
+                statusEl.className = "px-8 py-2.5 text-sm font-bold text-white bg-emerald-500 shrink-0 shadow-sm transition-colors duration-300";
+                statusEl.innerText = `🟢 데이터 연동 성공 (총 ${expenseData.length}건 로드됨)`;
+                
+                // 3초 뒤에 알림창 서서히 숨기기 (원치 않으시면 아래 2줄 지우셔도 됩니다)
+                setTimeout(() => { statusEl.style.display = 'none'; }, 4000);
+
+            } catch (err) {
+                console.error(err);
+                statusEl.className = "px-8 py-2.5 text-sm font-bold text-white bg-rose-500 shrink-0 shadow-sm transition-colors duration-300";
+                statusEl.innerText = `🔴 연동 실패: ${err.message}`;
+            }
+        }
+
+        // 탭(버튼) DOM 렌더러
+        function createTabs(containerId, options, currentStateKey, isAllAllowed=true) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if(isAllAllowed) {
+                const btnAll = document.createElement('button');
+                btnAll.className = `filter-tab shrink-0 ${state[currentStateKey] === 'all' ? 'active' : ''}`;
+                btnAll.innerText = '전체 보기';
+                btnAll.onclick = () => { state[currentStateKey] = 'all'; renderTabButtons(); updateAllViews(); };
+                container.appendChild(btnAll);
+            }
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `filter-tab shrink-0 ${state[currentStateKey] === opt.value ? 'active' : ''}`;
+                btn.innerText = opt.label;
+                btn.onclick = () => { state[currentStateKey] = opt.value; renderTabButtons(); updateAllViews(); };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderTabButtons() {
+            const years = new Set(), months = new Set(), cats = new Set(), payers = new Set(), users = new Set();
+            
+            expenseData.forEach(d => {
+                if (d.year) years.add(d.year);
+                if (d.month) months.add(d.month);
+                if (d['구분'] && d['구분'] !== '-') cats.add(d['구분']);
+                if (d['지출자'] && d['지출자'] !== '-') payers.add(d['지출자']);
+                if (d['사용자'] && d['사용자'] !== '-') users.add(d['사용자']);
+            });
+
+            createTabs('dashYearTabs', Array.from(years).sort().map(y=>({value:y, label:`${y}년`})), 'dashYear', false);
+            createTabs('dashMonthTabs', Array.from(months).sort().map(m=>({value:m, label:`${m}월`})), 'dashMonth', false);
+            createTabs('dashSpenderTabs', Array.from(payers).map(p=>({value:p, label:p})), 'dashSpender');
+            
+            createTabs('expCategoryTabs', Array.from(cats).map(c=>({value:c, label:c})), 'expCategory');
+            createTabs('expPayerTabs', Array.from(payers).map(p=>({value:p, label:p})), 'expPayer');
+            createTabs('expUserTabs', Array.from(users).map(u=>({value:u, label:u})), 'expUser');
+        }
+
+        function updateAllViews() {
+            try {
+                updateDashboard();
+                updateExpenseTable();
+            } catch(e) { console.error("뷰 렌더링 에러:", e); }
+        }
+
+        // =====================================
+        // 대시보드 렌더링 로직
+        // =====================================
+        function updateDashboard() {
+            const y = state.dashYear;
+            const m = state.dashMonth;
+            const s = state.dashSpender;
+            const curMonthKey = `${y}-${m}`;
+            
+            let monthlyInc = goalData[curMonthKey] || 0;
+            let monthlyExp = 0;
+            let cumulativeInc = 0;
+            let cumulativeExp = 0;
+
+            expenseData.forEach(d => {
+                // 월 지출
+                if (d.year === y && d.month === m && (s === 'all' || d['지출자'] === s)) {
+                    monthlyExp += d['금액'];
+                }
+                // 누적 계산
+                if (d.year === y && parseInt(d.month) <= parseInt(m)) {
+                    cumulativeExp += d['금액'];
+                }
+            });
+
+            Object.keys(goalData).forEach(k => {
+                const kp = k.split('-');
+                if(kp[0] === y && parseInt(kp[1]) <= parseInt(m)) {
+                    cumulativeInc += goalData[k];
+                }
+            });
+
+            document.getElementById('kpiIncome').innerText = monthlyInc.toLocaleString() + '원';
+            document.getElementById('kpiExpense').innerText = monthlyExp.toLocaleString() + '원';
+            document.getElementById('kpiNet').innerText = (monthlyInc - monthlyExp).toLocaleString() + '원';
+            document.getElementById('kpiCumulative').innerText = (cumulativeInc - cumulativeExp).toLocaleString() + '원';
+
+            // 2. 인사이트 (전월 대비)
+            let prevM = parseInt(m) - 1;
+            let prevY = parseInt(y);
+            if (prevM === 0) { prevM = 12; prevY -= 1; }
+            
+            let curCatMap = {}, prevCatMap = {};
+            expenseData.forEach(d => {
+                if((s === 'all' || d['지출자'] === s)) {
+                    if (d.year === y && d.month === m) curCatMap[d['구분']] = (curCatMap[d['구분']] || 0) + d['금액'];
+                    if (d.year === prevY.toString() && d.month === prevM.toString().padStart(2, '0')) prevCatMap[d['구분']] = (prevCatMap[d['구분']] || 0) + d['금액'];
+                }
+            });
+
+            let maxCat = '-', maxAmt = 0, minCat = '-', minAmt = Infinity;
+            Object.keys(curCatMap).forEach(c => {
+                if(curCatMap[c] > maxAmt) { maxAmt = curCatMap[c]; maxCat = c; }
+                if(curCatMap[c] < minAmt) { minAmt = curCatMap[c]; minCat = c; }
+            });
+
+            document.getElementById('insightMaxCat').innerText = maxCat;
+            document.getElementById('insightMaxAmt').innerText = maxAmt.toLocaleString() + '원';
+            if(maxCat !== '-' && prevCatMap[maxCat] !== undefined) {
+                let diff = maxAmt - prevCatMap[maxCat];
+                let sign = diff > 0 ? '🔺 증가' : '🔽 감소';
+                document.getElementById('insightMaxDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${sign}</b>`;
+            } else document.getElementById('insightMaxDesc').innerText = "전월 비교 데이터 없음";
+
+            document.getElementById('insightMinCat').innerText = minAmt === Infinity ? '-' : minCat;
+            document.getElementById('insightMinAmt').innerText = minAmt === Infinity ? '0원' : minAmt.toLocaleString() + '원';
+            if(minAmt !== Infinity && minCat !== '-' && prevCatMap[minCat] !== undefined) {
+                let diff = minAmt - prevCatMap[minCat];
+                let sign = diff > 0 ? '🔺 증가' : '🔽 감소';
+                document.getElementById('insightMinDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${sign}</b>`;
+            } else document.getElementById('insightMinDesc').innerText = "전월 비교 데이터 없음";
+
+            // 3. 월별 차트 & 테이블
+            let yearlyInc = {}, yearlyExp = {};
+            for(let i=1; i<=12; i++) {
+                let mStr = i.toString().padStart(2, '0');
+                yearlyInc[mStr] = goalData[`${y}-${mStr}`] || 0;
+                yearlyExp[mStr] = 0;
+            }
+            expenseData.forEach(d => {
+                if(d.year === y && (s === 'all' || d['지출자'] === s)) {
+                    yearlyExp[d.month] = (yearlyExp[d.month] || 0) + d['금액'];
+                }
+            });
+
+            const tb = document.getElementById('monthlyTableBody');
+            tb.innerHTML = '';
+            let chartLabels = [], chartInc = [], chartExp = [], chartRate = [];
+            
+            Object.keys(yearlyInc).sort().forEach((mStr, idx, arr) => {
+                let inc = yearlyInc[mStr], exp = yearlyExp[mStr], net = inc - exp;
+                if(inc > 0 || exp > 0) {
+                    chartLabels.push(parseInt(mStr)+'월');
+                    chartInc.push(inc);
+                    chartExp.push(exp);
+                    
+                    let rate = 0;
+                    if(idx > 0) {
+                        let prevExp = yearlyExp[arr[idx-1]];
+                        if(prevExp > 0) rate = ((exp - prevExp) / prevExp) * 100;
+                    }
+                    chartRate.push(rate);
+
+                    tb.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-50 last:border-0 transition">
+                            <td class="py-4 px-6 font-bold text-slate-800">${y}.${mStr}</td>
+                            <td class="py-4 px-6 text-right">${inc.toLocaleString()}원</td>
+                            <td class="py-4 px-6 text-right font-bold text-rose-500">${exp.toLocaleString()}원</td>
+                            <td class="py-4 px-6 text-right font-black text-emerald-600">${net.toLocaleString()}원</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // 차트 렌더링
+            if(mixedChart) mixedChart.destroy();
+            const ctx = document.getElementById('mixedChart');
+            if(ctx) {
+                mixedChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            { type: 'line', label: '지출 변동률(%)', data: chartRate, borderColor: '#f59e0b', backgroundColor: '#f59e0b', borderWidth: 3, yAxisID: 'y1', tension: 0.4 },
+                            { type: 'bar', label: '수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
+                            { type: 'bar', label: '지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', display: true, position: 'left', grid: {color: '#f1f5f9'} },
+                            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            }
+
+            // 4. 히트맵
+            const ht = document.getElementById('heatmapContainer');
+            if(ht) {
+                ht.innerHTML = '';
+                if(Object.keys(curCatMap).length === 0) {
+                    ht.innerHTML = '<p class="text-sm text-slate-400">데이터가 없습니다.</p>';
+                } else {
+                    let maxH = Math.max(...Object.values(curCatMap));
+                    let sortedCats = Object.keys(curCatMap).sort((a,b) => curCatMap[b] - curCatMap[a]);
+                    
+                    let htmlStr = '';
+                    sortedCats.forEach(c => {
+                        let val = curCatMap[c];
+                        let opacity = 0.2 + ((val / maxH) * 0.8); 
+                        htmlStr += `
+                            <div class="grid grid-cols-[100px_1fr] items-center gap-3">
+                                <div class="text-sm font-bold text-slate-700 truncate text-right">${c}</div>
+                                <div class="h-10 rounded-lg bg-[#ff6f59] heatmap-cell flex items-center px-4 shadow-sm" style="opacity: ${opacity}; width: ${Math.max((val/maxH)*100, 15)}%">
+                                    <span class="text-xs font-black ${opacity > 0.5 ? 'text-white' : 'text-slate-800'}">${val.toLocaleString()}원</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    ht.innerHTML = htmlStr;
+                }
+            }
+        }
+
+        // =====================================
+        // 지출 내역 리스트 렌더링
+        // =====================================
+        function updateExpenseTable() {
+            const catSel = state.expCategory;
+            const payerSel = state.expPayer;
+            const userSel = state.expUser;
+
+            const finalData = expenseData.filter(d => {
+                return (catSel === 'all' || d['구분'] === catSel) && 
+                       (payerSel === 'all' || d['지출자'] === payerSel) &&
+                       (userSel === 'all' || d['사용자'] === userSel);
+            });
+
+            const rowCountEl = document.getElementById('tableRowCount');
+            if(rowCountEl) rowCountEl.innerText = `${finalData.length}건`;
+            
+            const tbody = document.getElementById('expenseTableBody');
+            if(!tbody) return;
+
+            if(!finalData.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-slate-400 font-bold">조건에 맞는 내역이 없습니다.</td></tr>`;
+            } else {
+                tbody.innerHTML = finalData.reverse().map(d => `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="py-4 px-6 text-slate-500 font-medium">${d['날짜_원본']}</td>
+                        <td class="py-4 px-6"><span class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-md text-xs font-bold">${d['구분']}</span></td>
+                        <td class="py-4 px-6 font-bold text-slate-800">${d['항목']}</td>
+                        <td class="py-4 px-6 text-center text-slate-500 font-medium">${d['지출자']}</td>
+                        <td class="py-4 px-6 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">${d['사용자']}</span></td>
+                        <td class="py-4 px-6 text-right font-black text-slate-800 text-base">${d['금액'].toLocaleString()}원</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // 페이지 로드 시 실행
+        window.onload = fetchData;
+    </script>
+</body>
+</html>

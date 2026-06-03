@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>재원 & 세연 가계부</title>
-    <!-- Tailwind v3 -->
+    <title>재원 & 세연 가계부 (목표 성과 트랙킹 v2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', 'Pretendard', sans-serif; background-color: #f4f5f8; }
@@ -16,9 +16,11 @@
         .card-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .hidden-view { display: none !important; }
         
+        /* 알약 모양 탭 필터 - 가로 정방향 배치 고정 */
         .filter-tab {
             padding: 8px 20px; border-radius: 9999px; font-size: 14px; font-weight: 700; cursor: pointer;
             background-color: #f1f5f9; color: #64748b; transition: all 0.2s ease; border: 2px solid transparent; margin-bottom: 8px;
+            white-space: nowrap; text-align: center;
         }
         .filter-tab:hover { background-color: #e2e8f0; color: #334155; }
         .filter-tab.active { background-color: #ff6f59; color: white; box-shadow: 0 4px 10px rgba(255,111,89,0.3); }
@@ -37,7 +39,6 @@
         };
     </script>
 
-    <!-- 사이드바 -->
     <aside class="w-64 bg-[#222736] flex-col hidden lg:flex h-full z-10 shrink-0">
         <div class="h-16 flex items-center px-6 border-b border-white/10">
             <div class="flex items-center gap-3 text-white font-bold text-lg tracking-wide">
@@ -59,16 +60,14 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                     지출 (상세 내역)
                 </button>
-                <!-- ⭐ 4. 목표 전용 비즈니스 타겟 트로피 심볼로 교체 ⭐ -->
                 <button onclick="switchTab('goals')" id="btn-goals" class="w-full flex items-center px-4 py-3 rounded-xl text-[#8c98a8] hover:text-white hover:bg-white/5 transition">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138z"></path></svg>
                     목표 설정 조회
                 </button>
             </nav>
         </div>
     </aside>
 
-    <!-- 메인 콘텐츠 -->
     <main class="flex-1 overflow-y-auto bg-[#f8fafc] flex flex-col relative w-full">
         
         <div id="syncStatus" class="px-6 py-2.5 text-sm font-bold text-white bg-slate-500 w-full text-center sticky top-0 z-50 shadow-sm border-b border-white/20 transition-colors">
@@ -81,12 +80,8 @@
 
         <div class="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 w-full flex-1">
 
-            <!-- ========================================== -->
-            <!-- 뷰 1: 대시보드 -->
-            <!-- ========================================== -->
             <div id="view-dashboard" class="space-y-8">
                 
-                <!-- 탭 필터 -->
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 space-y-4">
                     <div class="flex flex-col lg:flex-row lg:items-start gap-4 border-b border-slate-100 pb-4">
                         <span class="text-sm font-extrabold text-slate-400 w-24 shrink-0 mt-2">기준 연도</span>
@@ -102,26 +97,24 @@
                     </div>
                 </div>
 
-                <!-- KPI 요약 -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-1.5 h-full bg-[#3b82f6]"></div>
-                        <p class="text-sm font-semibold text-slate-500 mb-1">월 수입</p>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 목표 수입</p>
                         <h3 id="kpiIncome" class="text-3xl font-black text-slate-800 tracking-tight">0원</h3>
                     </div>
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-1.5 h-full bg-[#ef4444]"></div>
-                        <p class="text-sm font-semibold text-slate-500 mb-1">월 실제 지출</p>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 실제 총지출</p>
                         <h3 id="kpiExpense" class="text-3xl font-black text-[#ef4444] tracking-tight">0원</h3>
                     </div>
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-1.5 h-full bg-[#10b981]"></div>
-                        <p class="text-sm font-semibold text-slate-500 mb-1">월 수입 - 지출 (잔액)</p>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">월 목표 수입 - 실제 지출 (잔액)</p>
                         <h3 id="kpiNet" class="text-2xl font-black text-[#10b981] tracking-tight">0원</h3>
                     </div>
                 </div>
 
-                <!-- 비교 인사이트 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex items-center justify-between">
                         <div>
@@ -151,11 +144,10 @@
                     </div>
                 </div>
 
-                <!-- ⭐ 3. 목표 관리 현황 (개인지출+투자+저축 3단 구성) ⭐ -->
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
-                    <h3 class="text-base font-bold text-slate-800 mb-4">목표 관리 현황</h3>
+                    <h3 class="text-base font-bold text-slate-800 mb-2">목표 성과 관리 및 트랙킹</h3>
+                    <p class="text-xs text-slate-400 mb-5">구글 시트 [목표 설정] 탭에 작성된 수치와 당월 실제 지출 및 이체 금액을 대조 분석합니다.</p>
                     <div id="goalProgressContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                        <!-- JS 실시간 바 그래프 렌더링 -->
                     </div>
                 </div>
 
@@ -163,20 +155,18 @@
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
                         <h3 class="text-base font-bold text-slate-800 mb-2">월별 수입/지출 및 지출 변동률</h3>
                         <p class="text-xs text-slate-400 mb-6">선택된 연도의 전체 흐름을 보여줍니다.</p>
-                        <div class="h-[350px] w-full flex-1"><canvas id="mixedChart"></canvas></div>
+                        <div class="h-[350px] w-full"><canvas id="mixedChart"></canvas></div>
                     </div>
                     
-                    <!-- ⭐ 2. 트리맵 제거 ➡️ 그라데이션 오렌지 톤 파이 차트 탑재 ⭐ -->
                     <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col">
-                        <h3 class="text-base font-bold text-slate-800 mb-2">카테고리별 지출 비중 (파이 차트)</h3>
-                        <p class="text-xs text-slate-400 mb-6">각 소비 항목의 전체적인 포션을 명확하게 보여줍니다.</p>
+                        <h3 class="text-base font-bold text-slate-800 mb-2">카테고리별 지출 비중</h3>
+                        <p class="text-xs text-slate-400 mb-6">각 소비 항목의 비율적 비중을 가로 정방향 텍스트로 보여줍니다.</p>
                         <div class="relative w-full h-[350px] flex items-center justify-center">
                             <canvas id="categoryPieChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- 테이블 -->
                 <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
                     <div class="p-6 border-b border-slate-100">
                         <h3 class="text-base font-bold text-slate-800">월별 수입/지출 상세 현황</h3>
@@ -186,9 +176,9 @@
                             <thead class="bg-slate-50 text-slate-500">
                                 <tr>
                                     <th class="py-4 px-6 font-bold">연/월</th>
-                                    <th class="py-4 px-6 font-bold text-right text-blue-600">월 수입</th>
-                                    <th class="py-4 px-6 font-bold text-right text-red-500">월 지출</th>
-                                    <th class="py-4 px-6 font-bold text-right text-emerald-600">월 잔액</th>
+                                    <th class="py-4 px-6 font-bold text-right text-blue-600">월 목표 수입</th>
+                                    <th class="py-4 px-6 font-bold text-right text-red-500">월 실제 총지출</th>
+                                    <th class="py-4 px-6 font-bold text-right text-emerald-600">월 종합 잔액</th>
                                 </tr>
                             </thead>
                             <tbody id="monthlyTableBody" class="divide-y divide-slate-100 text-slate-700">
@@ -198,9 +188,6 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- 뷰 2: 지출 내역 -->
-            <!-- ========================================== -->
             <div id="view-expenses" class="hidden-view space-y-6">
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 space-y-4">
                     <div class="flex flex-col lg:flex-row lg:items-start gap-4 border-b border-slate-100 pb-4">
@@ -244,9 +231,6 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- 뷰 3: 목표 설정 조회 -->
-            <!-- ========================================== -->
             <div id="view-goals" class="hidden-view space-y-6">
                 <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
                     <div class="flex flex-col lg:flex-row lg:items-start gap-4">
@@ -265,10 +249,10 @@
                                 <tr>
                                     <th class="py-4 px-6 font-bold">기간(월)</th>
                                     <th class="py-4 px-6 font-bold text-center">구분</th>
-                                    <th class="py-4 px-6 font-bold text-right text-blue-600">총 수입</th>
-                                    <th class="py-4 px-6 font-bold text-right text-purple-600">투자 목표</th>
-                                    <th class="py-4 px-6 font-bold text-right text-indigo-600">저축 목표</th>
-                                    <th class="py-4 px-6 font-bold text-right text-orange-600">개인 지출 목표</th>
+                                    <th class="py-4 px-6 font-bold text-right text-blue-600">총 수입 목표</th>
+                                    <th class="py-4 px-6 font-bold text-right text-purple-600">투자 목표액</th>
+                                    <th class="py-4 px-6 font-bold text-right text-indigo-600">저축 목표액</th>
+                                    <th class="py-4 px-6 font-bold text-right text-orange-600">개인 지출 목표액</th>
                                 </tr>
                             </thead>
                             <tbody id="goalTableBody" class="text-slate-600 divide-y divide-slate-100">
@@ -277,7 +261,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -416,6 +399,8 @@
                 expenseData = parseExpenseCSV(await expRes.text());
                 if(goalRes.ok) goalDataArr = parseGoalCSV(await goalRes.text());
                 
+                if(expenseData.length === 0) throw new Error("지출 데이터가 비어있습니다.");
+
                 let maxYear = 0, maxMonth = 0;
                 expenseData.forEach(d => { if(parseInt(d.year) > maxYear) maxYear = parseInt(d.year); });
                 expenseData.forEach(d => { if(d.year == maxYear && parseInt(d.month) > maxMonth) maxMonth = parseInt(d.month); });
@@ -470,8 +455,6 @@
 
             const order = { '재원': 1, '세연': 2, '공통': 3 };
             let sortedPayers = Array.from(payers).sort((a, b) => (order[a]||99) - (order[b]||99));
-            
-            // ⭐ 1. 대시보드 지출자 필터에서 '공통' 완벽 제외 ⭐
             let dashPayers = sortedPayers.filter(p => p !== '공통');
 
             createTabs('dashYearTabs', Array.from(years).sort().map(y=>({value:y, label:`${y}년`})), 'dashYear', false);
@@ -490,30 +473,41 @@
             catch(e) { console.error(e); }
         }
 
-        // 공통 진행바 컴포넌트 (텍스트/미정 유연 대응)
+        // 트랙킹 게이지 바 컴포넌트 생성기 (정방향 레이아웃 유지)
         function renderProgressBar(title, target, actual, typeColor='bg-emerald-500', isTextTarget=false, rawTargetText='') {
             let percent = target > 0 ? (actual / target) * 100 : 0;
             if(target === 0 && actual > 0) percent = 100;
             
             let txtColor = 'text-slate-700';
             let msg = '';
+            let color = typeColor;
             
             if(isTextTarget) {
-                msg = rawTargetText; // '미정' 등의 텍스트 처리
+                msg = rawTargetText; 
                 percent = 0;
             } else {
                 let over = actual > target;
-                color = over ? 'bg-rose-500' : typeColor;
-                txtColor = over ? 'text-rose-500' : 'text-slate-700';
-                let diff = Math.abs(target - actual);
-                msg = over ? `${diff.toLocaleString()}원 초과 🚨` : `${diff.toLocaleString()}원 여유 ✅`;
+                // 지출 성격은 초과하면 경고색(rose), 투자/저축은 많이할수록 좋은 지표이므로 유연하게 대처
+                let isSpending = title.includes('지출') || title.includes('용돈');
+                
+                if (isSpending) {
+                    color = over ? 'bg-rose-500' : typeColor;
+                    txtColor = over ? 'text-rose-500' : 'text-slate-700';
+                    let diff = Math.abs(target - actual);
+                    msg = over ? `${diff.toLocaleString()}원 초과 🚨` : `${diff.toLocaleString()}원 여유 ✅`;
+                } else {
+                    // 투자 및 저축 성과 지표 분석
+                    color = percent >= 100 ? 'bg-emerald-500' : typeColor;
+                    txtColor = percent >= 100 ? 'text-emerald-600' : 'text-amber-600';
+                    msg = percent >= 100 ? `목표 달성 성공 🎉` : `${(100 - percent).toFixed(0)}% 부족 ⏳`;
+                }
                 if(target === 0) msg = "목표 미설정";
             }
 
             return `
                 <div class="p-5 border border-slate-100 rounded-xl bg-slate-50 flex flex-col justify-between w-full shadow-sm">
                     <div class="flex justify-between items-end mb-4">
-                        <div>
+                        <div class="text-left">
                             <p class="text-sm font-extrabold text-slate-700">${title}</p>
                             <p class="text-xs text-slate-400 mt-1">목표: ${isTextTarget ? rawTargetText : target.toLocaleString() + '원'}</p>
                         </div>
@@ -529,14 +523,14 @@
             `;
         }
 
-        // 대시보드 뷰
+        // 대시보드 데이터 수집 및 차트 빌드
         function updateDashboard() {
             const y = state.dashYear, m = state.dashMonth, s = state.dashSpender;
             let targetInc = 0, targetPersonal = 0, targetInvestment = 0, targetSaving = 0;
             let isInvText = false, isSavText = false;
             let rawInvText = '', rawSavText = '';
             
-            // 목표설정 연동
+            // 1. [목표 설정] 데이터 분석 및 매칭
             goalDataArr.forEach(g => {
                 if(g.year === y && g.month === m) {
                     let nameKey = Object.keys(g.raw).find(k => k.includes('구분') || k.includes('이름') || k.includes('지출자'));
@@ -548,20 +542,19 @@
                         
                         if(k.includes('수입')) targetInc += val;
                         if(k.includes('개인') || k.includes('지출 목표') || k.includes('용돈') || k.includes('품위')) targetPersonal += val;
-                        
-                        // ⭐ 3. 투자 및 저축목표 신규 추가 추출 로직 ⭐
                         if(k.includes('투자')) {
-                            if(isNaN(rawValue.replace(/[^0-9]/g, '')) || rawValue === '미정') { isInvText = true; rawInvText = rawValue; }
+                            if(isNaN(rawValue.replace(/[^0-9]/g, '')) || rawValue === '미정' || rawValue === '') { isInvText = true; rawInvText = rawValue || '미정'; }
                             else targetInvestment += val;
                         }
                         if(k.includes('저축')) {
-                            if(isNaN(rawValue.replace(/[^0-9]/g, '')) || rawValue === '미정') { isSavText = true; rawSavText = rawValue; }
+                            if(isNaN(rawValue.replace(/[^0-9]/g, '')) || rawValue === '미정' || rawValue === '') { isSavText = true; rawSavText = rawValue || '미정'; }
                             else targetSaving += val;
                         }
                     });
                 }
             });
 
+            // 2. [지출 상세] 실제 수행 내용 계산
             let monthlyExp = 0, actualPersonal = 0, actualInvestment = 0, actualSaving = 0;
             let curCatMap = {}, prevCatMap = {};
             let prevM = parseInt(m) - 1, prevY = parseInt(y);
@@ -574,13 +567,14 @@
                         monthlyExp += d['금액'];
                         curCatMap[d['구분']] = (curCatMap[d['구분']] || 0) + d['금액'];
                         
-                        // 개인 지출 카테고리 누적
-                        if(d['구분'].includes('용돈') || d['항목'].includes('용돈') || d['구분'].includes('품위') || d['항목'].includes('품위') || d['구분'].includes('개인')) {
-                            actualPersonal += d['금액'];
-                        }
-                        // 투자/저축 실지출 매칭 자장가 (필요 시 확장 가능)
-                        if(d['구분'].includes('투자')) actualInvestment += d['금액'];
-                        if(d['구분'].includes('저축')) actualSaving += d['금액'];
+                        // 명칭 키워드 매칭 분석 기법 고도화
+                        let isPersonalCat = d['구분'].includes('용돈') || d['항목'].includes('용돈') || d['구분'].includes('품위') || d['항목'].includes('품위') || d['구분'].includes('개인');
+                        let isInvestmentCat = d['구분'].includes('투자') || d['항목'].includes('투자');
+                        let isSavingCat = d['구분'].includes('저축') || d['항목'].includes('저축') || d['구분'].includes('예금') || d['구분'].includes('적금');
+
+                        if(isPersonalCat) actualPersonal += d['금액'];
+                        if(isInvestmentCat) actualInvestment += d['금액'];
+                        if(isSavingCat) actualSaving += d['금액'];
                     }
                     if(d.year === prevY.toString() && d.month === prevM.toString().padStart(2, '0')) {
                         prevCatMap[d['구분']] = (prevCatMap[d['구분']] || 0) + d['금액'];
@@ -592,14 +586,14 @@
             document.getElementById('kpiExpense').innerText = monthlyExp.toLocaleString() + '원';
             document.getElementById('kpiNet').innerText = (targetInc - monthlyExp).toLocaleString() + '원';
 
-            // ⭐ 3. 목표 관리 현황 3단 위젯 통합 출력 ⭐
+            // 3. 투자액, 저축액 항목 트랙킹 위젯 렌더링 (가로 정방향)
             let titlePrefix = s === 'all' ? '전체 ' : `${s}님 `;
             let goalHtml = renderProgressBar(`${titlePrefix}개인 지출 목표`, targetPersonal, actualPersonal, 'bg-orange-500');
-            goalHtml += renderProgressBar(`${titlePrefix}투자 목표`, targetInvestment, actualInvestment, 'bg-purple-500', isInvText, rawInvText);
-            goalHtml += renderProgressBar(`${titlePrefix}저축 목표`, targetSaving, actualSaving, 'bg-indigo-500', isSavText, rawSavText);
+            goalHtml += renderProgressBar(`${titlePrefix}투자 목표 성과`, targetInvestment, actualInvestment, 'bg-purple-500', isInvText, rawInvText);
+            goalHtml += renderProgressBar(`${titlePrefix}저축 목표 성과`, targetSaving, actualSaving, 'bg-indigo-500', isSavText, rawSavText);
             document.getElementById('goalProgressContainer').innerHTML = goalHtml;
 
-            // 인사이트
+            // 4. 전월비교 인사이트
             let maxCat = '-', maxAmt = 0, minCat = '-', minAmt = Infinity;
             Object.keys(curCatMap).forEach(c => {
                 if(curCatMap[c] > maxAmt) { maxAmt = curCatMap[c]; maxCat = c; }
@@ -619,7 +613,7 @@
                 document.getElementById('insightMinDesc').innerHTML = `전월 대비 <b class="${diff>0?'text-rose-500':'text-emerald-500'}">${Math.abs(diff).toLocaleString()}원 ${diff>0?'🔺 증가':'🔽 감소'}</b>`;
             } else document.getElementById('insightMinDesc').innerText = "전월 비교 데이터 없음";
 
-            // 연간 차트
+            // 5. 연간 통합 차트 빌드
             let yearlyInc = {}, yearlyExp = {};
             for(let i=1; i<=12; i++) {
                 let mStr = i.toString().padStart(2, '0');
@@ -668,49 +662,74 @@
                     labels: chartLabels,
                     datasets: [
                         { type: 'line', label: '지출 변동률(%)', data: chartRate, borderColor: '#f59e0b', backgroundColor: '#f59e0b', borderWidth: 3, yAxisID: 'y1', tension: 0.4 },
-                        { type: 'bar', label: '수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
-                        { type: 'bar', label: '지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
+                        { type: 'bar', label: '목표 수입', data: chartInc, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y' },
+                        { type: 'bar', label: '실제 지출', data: chartExp, backgroundColor: '#ff6f59', borderRadius: 4, yAxisID: 'y' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } } }
             });
 
-            // ⭐ 2. 트리맵 전면 제거 ➡️ 세련된 그라데이션 오렌지 파이 차트 생성 ⭐
+            // 6. 파이 차트 렌더링 엔진
             if(categoryPieChart) categoryPieChart.destroy();
             const pieCtx = document.getElementById('categoryPieChart');
             if(pieCtx) {
                 const keys = Object.keys(curCatMap);
                 const values = Object.values(curCatMap);
                 
-                // 단일 오렌지 계열 톤 생성을 위한 강도 조절 배열
                 let pieColors = keys.map((_, i) => {
-                    let opacity = 1 - (i * 0.15);
-                    return `rgba(255, 111, 89, ${Math.max(opacity, 0.2)})`;
+                    let opacity = 1 - (i * 0.12);
+                    return `rgba(255, 111, 89, ${Math.max(opacity, 0.25)})`;
                 });
 
                 categoryPieChart = new Chart(pieCtx.getContext('2d'), {
                     type: 'pie',
+                    plugins: [ChartDataLabels],
                     data: {
                         labels: keys,
                         datasets: [{
                             data: values,
                             backgroundColor: pieColors,
-                            borderWidth: 1,
+                            borderWidth: 2,
                             borderColor: '#ffffff'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: { padding: 20 },
                         plugins: {
-                            legend: { position: 'right', labels: { font: { size: 12, weight: 'bold' } } }
+                            legend: { 
+                                position: 'right', 
+                                labels: { font: { size: 12, weight: 'bold', family: 'Inter' } } 
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.parsed || 0;
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return ` ${label}: ${value.toLocaleString()}원 (${percentage}%)`;
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#1e293b',
+                                font: { family: 'Inter', size: 11, weight: '800' },
+                                formatter: function(value, ctx) {
+                                    let total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    if ((value / total) < 0.03) return ''; 
+                                    return ctx.chart.data.labels[ctx.dataIndex]; 
+                                },
+                                anchor: 'center', align: 'center', offset: 0
+                            }
                         }
                     }
                 });
             }
         }
 
-        // 지출 테이블
+        // 지출 테이블 내역 뷰어
         function updateExpenseTable() {
             const catSel = state.expCategory, payerSel = state.expPayer, userSel = state.expUser;
             const finalData = expenseData.filter(d => (catSel === 'all' || d['구분'] === catSel) && (payerSel === 'all' || d['지출자'] === payerSel) && (userSel === 'all' || d['사용자'] === userSel));
@@ -719,11 +738,11 @@
             document.getElementById('tableTotalSum').innerText = `합계: ${totalSum.toLocaleString()}원`;
             
             const tbody = document.getElementById('expenseTableBody');
-            tbody.innerHTML = finalData.length === 0 ? `<tr><td colspan="6" class="py-10 text-center font-bold text-slate-400">내역이 없습니다.</td></tr>` : finalData.reverse().map(d => `
+            tbody.innerHTML = finalData.length === 0 ? `<tr><td colspan="6" class="py-10 text-center font-bold text-slate-400">내역이 없습니다.</td></tr>` : finalData.slice().reverse().map(d => `
                 <tr class="hover:bg-slate-50 transition border-b border-slate-50 text-slate-600">
-                    <td class="py-4 px-6 font-medium">${d['날짜_원본']}</td>
-                    <td class="py-4 px-6"><span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold">${d['구분']}</span></td>
-                    <td class="py-4 px-6 font-bold text-slate-800">${d['항목']}</td>
+                    <td class="py-4 px-6 font-medium text-left">${d['날짜_원본']}</td>
+                    <td class="py-4 px-6 text-left"><span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold">${d['구분']}</span></td>
+                    <td class="py-4 px-6 font-bold text-slate-800 text-left">${d['항목']}</td>
                     <td class="py-4 px-6 text-center">${d['지출자']}</td>
                     <td class="py-4 px-6 text-center"><span class="bg-[#e7f0ff] text-[#3b82f6] px-2 py-1 rounded-full text-xs font-bold">${d['사용자']}</span></td>
                     <td class="py-4 px-6 text-right font-black text-slate-800">${d['금액'].toLocaleString()}원</td>
@@ -731,7 +750,7 @@
             `).join('');
         }
 
-        // 목표 설정 상세 테이블
+        // 목표 데이터 조회 탭 고도화
         function updateGoalTable() {
             const pSel = state.goalPayer;
             const tbody = document.getElementById('goalTableBody');
@@ -761,12 +780,12 @@
                 let sav = savKey ? g.raw[savKey] : '미정';
                 let prs = prsKey ? parseInt(g.raw[prsKey].replace(/[^0-9]/g, '')) || 0 : 0;
 
-                let invStr = isNaN(inv.replace(/[^0-9]/g, '')) || inv === '미정' ? inv : parseInt(inv.replace(/[^0-9]/g, '')).toLocaleString() + '원';
-                let savStr = isNaN(sav.replace(/[^0-9]/g, '')) || sav === '미정' ? sav : parseInt(sav.replace(/[^0-9]/g, '')).toLocaleString() + '원';
+                let invStr = isNaN(inv.replace(/[^0-9]/g, '')) || inv === '미정' || inv === '' ? inv : parseInt(inv.replace(/[^0-9]/g, '')).toLocaleString() + '원';
+                let savStr = isNaN(sav.replace(/[^0-9]/g, '')) || sav === '미정' || sav === '' ? sav : parseInt(sav.replace(/[^0-9]/g, '')).toLocaleString() + '원';
 
                 return `
                     <tr class="hover:bg-slate-50 transition border-b border-slate-50 text-slate-600">
-                        <td class="py-4 px-6 font-bold text-slate-800">${g.year}.${g.month}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800 text-left">${g.year}.${g.month}</td>
                         <td class="py-4 px-6 text-center"><span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-md text-xs font-bold">${name}</span></td>
                         <td class="py-4 px-6 text-right font-black text-blue-600">${inc.toLocaleString()}원</td>
                         <td class="py-4 px-6 text-right font-semibold text-purple-600">${invStr}</td>
